@@ -1,0 +1,7 @@
+npm WARN deploy@ No description
+npm WARN deploy@ No repository field.
+npm WARN deploy@ No license field.
+
+audited 42 packages in 1.227s
+found 0 vulnerabilities
+

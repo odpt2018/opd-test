@@ -1,0 +1,42 @@
+namespace "opd-test"."opd-test-db";
+
+context tables {
+
+    /*@@layout{"layoutInfo":{}}*/
+    entity Railway {
+        odptRailway : String(100);
+        InboundWord : String(100);
+    };
+
+    /*@@layout{"layoutInfo":{}}*/
+    entity Station {
+        odptRailway : String(100);
+        odptStation : String(100);
+        InboundWord : String(100);
+    };
+
+    /*@@layout{"layoutInfo":{}}*/
+    entity RailDirection {
+        odptRailDirection : String(100);
+        InboundWord       : String(100);
+    };
+
+    /*@@layout{"layoutInfo":{}}*/
+    entity RailwayTemp {
+        odptRailway : String(100);
+        InboundWord : String(100);
+    };
+
+    /*@@layout{"layoutInfo":{}}*/
+    entity StationTemp {
+        odptRailway : String(100);
+        odptStation : String(100);
+        InboundWord : String(100);
+    };
+
+    /*@@layout{"layoutInfo":{}}*/
+    entity RailDirectionTemp {
+        odptRailDirection : String(100);
+        InboundWord       : String(100);
+    };
+};

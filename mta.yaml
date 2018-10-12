@@ -1,0 +1,30 @@
+ID: opd_test
+_schema-version: '3.1'
+version: 0.0.1
+modules:
+  - name: opd-test-db
+    type: hdb
+    path: opd-test-db
+    requires:
+      - name: hdi_opd-test-db
+    parameters: {}
+  - name: opd-test-js
+    type: nodejs
+    path: opd-test-js
+    provides:
+      - name: opd-test-js_api
+        properties:
+          url: '${default-url}'
+    requires:
+      - name: hdi_opd-test-db
+    parameters:
+      memory: 128M
+resources:
+  - name: hdi_opd-test-db
+    parameters:
+      config:
+        database_id: 4dc3e4ee-0f6f-4b79-abe9-9fdb05c26af6
+        schema: OPDTESTUSER
+    properties:
+      hdi-container-name: '${service-name}'
+    type: com.sap.xs.hdi-container
