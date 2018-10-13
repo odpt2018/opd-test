@@ -162,10 +162,6 @@ async function waitAllForHiraganaInsertWrapper(req, res, array, vInsertTarget) {
 
 app.post('/Inbound', function (req, res) {
 	console.log("Hello!");
-	console.log(req.body.conversation.memory.line.value);
-	console.log(req.body.conversation.memory.station.value);
-	console.log(req.body.conversation.memory.direction.value);
-	console.log(req.body.conversation.memory.time.value);
 	var InRailway = req.body.conversation.memory.line.value;
 	var InStation = req.body.conversation.memory.station.value;
 	var InDirection = req.body.conversation.memory.direction.value;
