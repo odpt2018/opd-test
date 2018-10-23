@@ -21,7 +21,9 @@ context tables {
 
     /*@@layout{"layoutInfo":{}}*/
     entity RailDirection {
+        Railway           : String(100);
         odptRailDirection : String(100);
+        UpDown            : String(100);
         InboundWord       : String(100);
     };
 
