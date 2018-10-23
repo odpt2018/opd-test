@@ -65,6 +65,8 @@ typings/
 .che/project.json
 opd-test-db/.che/project.json
 opd-test-js/.che/project.json
-
+target/*
+.mta/*
+opd-test-db/node_modules/*
 
 
