@@ -21,7 +21,7 @@ context tables {
 
     /*@@layout{"layoutInfo":{}}*/
     entity RailDirection {
-        odptOperator      : String(10);
+        odptOperator      : String(100);
         odptRailway       : String(100);
         odptRailDirection : String(100);
         UpDown            : Integer;
