@@ -7,8 +7,8 @@ context tables {
         InboundWord : String(100);
         Operator    : String(100);
         odptRailway : String(100);
-        Station     : String(100);
-        Index       : String(100);
+        odptStation : String(100);
+        odptIndex   : Integer;
     };
 
     /*@@layout{"layoutInfo":{}}*/
