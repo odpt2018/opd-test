@@ -4,8 +4,11 @@ context tables {
 
     /*@@layout{"layoutInfo":{}}*/
     entity Railway {
-        odptRailway : String(100);
         InboundWord : String(100);
+        Operator    : String(100);
+        odptRailway : String(100);
+        Station     : String(100);
+        Index       : String(100);
     };
 
     /*@@layout{"layoutInfo":{}}*/
