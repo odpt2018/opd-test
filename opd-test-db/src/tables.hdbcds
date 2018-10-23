@@ -4,11 +4,11 @@ context tables {
 
     /*@@layout{"layoutInfo":{}}*/
     entity Railway {
-        InboundWord : String(100);
-        Operator    : String(100);
-        odptRailway : String(100);
-        odptStation : String(100);
-        odptIndex   : Integer;
+        InboundWord  : String(100);
+        odptOperator : String(100);
+        odptRailway  : String(100);
+        odptStation  : String(100);
+        odptIndex    : Integer;
     };
 
     /*@@layout{"layoutInfo":{}}*/
