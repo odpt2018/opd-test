@@ -288,7 +288,7 @@ app.post('/Inbound', function (req, res) {
 		InTimeFormatted.add(InTime,'hours');
 		*/
 		
-		//方面情報取得
+		//方面情報取得 
 		/*
 		select TOP 1 "odptOperator","odptRailway","odptStationOn","odptStationOff","odptRailDirection" 
 		 from "opd-test.opd-test-db::zf_getDirection"('渋谷','九段下','半蔵門線');

@@ -4,7 +4,7 @@ FUNCTION "opd-test.opd-test-db::zf_getDirection" (in InStationOn nvarchar(100), 
        SQL SECURITY INVOKER AS 
 BEGIN 
     RETURN 
-		select D."odptOperator" as "odptOperator", D."odptRailway" as "odptRailway",  U."odptStationOn" as "odptStationOn" ,  U."odptStationOff" as "odptStationOff" ,D."odptRailDirection" as "odptRailDirection" from 
+		select D."odptOperator" as "odptOperator", D."odptRailway" as "odptRailway",  U."odptStationOn" as "odptStationOn" ,  U."odptStationOff" as "odptStationOff" ,D."odptRailDirection" as "odptRailDirection" FROM
 			(select "odptOperator","odptRailway",max("odptStationOn") as "odptStationOn",max("odptStationOff") as "odptStationOff",
 				case
 				  when sum("OnIndex") > sum("OffIndex") THEN 0
