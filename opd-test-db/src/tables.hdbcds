@@ -46,4 +46,11 @@ context tables {
         odptRailDirection : String(100);
         InboundWord       : String(100);
     };
+
+    /*@@layout{"layoutInfo":{"x":27,"y":152.5}}*/
+    entity TrainType {
+        odptOperator     : String(100);
+        odptTrainType    : String(100);
+        odptTrainTypeTxt : String(100);
+    };
 };
