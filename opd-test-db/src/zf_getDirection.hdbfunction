@@ -18,7 +18,7 @@ BEGIN
 					AND R."odptStation" = S."odptStation"
 					AND R."odptOperator" = S."odptOperator"
 					where S."InboundWord" = :InStationOn
-					and R."InboundWord" = :InLine
+					AND R."InboundWord" = :InLine
 				union all
 				select  R."odptOperator" as "odptOperator", R."odptRailway" as "odptRailway", null as "odptStationOn",null as "OnIndex", S."odptStation" as "odptStationOff", to_int(R."odptIndex") as "OffIndex" 
 					FROM "opd-test.opd-test-db::tables.Railway" R
@@ -27,7 +27,7 @@ BEGIN
 					AND R."odptStation" = S."odptStation"
 					AND R."odptOperator" = S."odptOperator"
 					where S."InboundWord" = :InStationOff
-					and R."InboundWord" = :InLine
+					AND R."InboundWord" = :InLine
 				)
 				group by "odptOperator","odptRailway"
 			) U
