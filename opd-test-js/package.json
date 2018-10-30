@@ -6,7 +6,8 @@
 		"@sap/xsenv": "latest",
 		"@sap/hdbext": "latest",
 		"axios": "latest",
-		"async": "latest"
+		"async": "latest",
+		"moment": "latest"
 	},
 	"devDependencies": {
 		"gulp": "3.9.1",
