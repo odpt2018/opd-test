@@ -1,0 +1,25 @@
+{
+    "format_version": 1,
+    "imports": [
+        {
+            "target_table": "opd-test.opd-test-db::tables.TrainType",
+            "source_data": {
+                "data_type": "CSV",
+                "file_name": "opd-test.opd-test-db.data::Table_TrainType.csv",
+                "has_header": true,
+                "delete_existing_foreign_data": true,
+                "dialect"   : "HANA",  
+                "type_config" : { 
+                  "delimiter" : "," 
+                } 
+            },
+            "import_settings": {
+                "import_columns": [
+                    "odptOperator",
+                    "odptTrainType",
+                    "odptTrainTypeTxt"
+                ]
+            }
+        }
+    ]
+}
