@@ -1,0 +1,37 @@
+FUNCTION "opd-test.opd-test-db::zf_getDirection" (in InStationOn nvarchar(100), InStationOff nvarchar(100), InLine nvarchar(100) )
+       RETURNS TABLE ("odptOperator" nvarchar(100), "odptRailway" nvarchar(100), "odptStationOn" nvarchar(100),"odptStationOff" nvarchar(100), "odptRailDirection" nvarchar(100))
+       LANGUAGE SQLSCRIPT 
+       SQL SECURITY INVOKER AS 
+BEGIN 
+    RETURN 
+		SELECT D."odptOperator" AS "odptOperator", D."odptRailway" AS "odptRailway",  U."odptStationOn" AS "odptStationOn" ,  U."odptStationOff" AS "odptStationOff" ,D."odptRailDirection" AS "odptRailDirection" FROM 
+			(SELECT "odptOperator","odptRailway",MAX("odptStationOn") AS "odptStationOn",MAX("odptStationOff") AS "odptStationOff",
+				CASE
+				  WHEN SUM("OnIndex") > SUM("OffIndex") THEN 0
+				  WHEN SUM("OnIndex") < SUM("OffIndex") THEN 1
+				END AS "UpDown"
+				FROM (
+				SELECT R."odptOperator" AS "odptOperator", R."odptRailway" AS "odptRailway", S."odptStation" AS "odptStationOn",to_int(R."odptIndex") AS "OnIndex", null AS "odptStationOff", null AS "OffIndex" FROM "opd-test.opd-test-db::tables.Railway" R
+					INNER JOIN "opd-test.opd-test-db::tables.Station" S
+					ON R."odptRailway" = S."odptRailway"
+					AND R."odptStation" = S."odptStation"
+					AND R."odptOperator" = S."odptOperator"
+					WHERE S."InboundWord" = :InStationOn
+					AND R."InboundWord" = :InLine
+				UNION ALL
+				SELECT  R."odptOperator" AS "odptOperator", R."odptRailway" AS "odptRailway", null AS "odptStationOn",null AS "OnIndex", S."odptStation" AS "odptStationOff", to_int(R."odptIndex") AS "OffIndex" FROM "opd-test.opd-test-db::tables.Railway" R
+					INNER JOIN "opd-test.opd-test-db::tables.Station" S
+					ON R."odptRailway" = S."odptRailway"
+					AND R."odptStation" = S."odptStation"
+					AND R."odptOperator" = S."odptOperator"
+					WHERE S."InboundWord" = :InStationOff
+					AND R."InboundWord" = :InLine
+				)
+				GROUP BY "odptOperator","odptRailway"
+			) U
+			INNER JOIN "opd-test.opd-test-db::tables.RailDirection" D
+			ON  1=1
+			AND U."odptOperator" = D."odptOperator"
+			AND U."odptRailway" = D."odptRailway"
+			AND U."UpDown" = D."UpDown";
+END;

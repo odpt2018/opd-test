@@ -10,6 +10,7 @@ var bodyParser = require('body-parser');
 var https = require('https');
 var axios = require('axios');
 var async = require("async");
+var moment = require("moment");
 
 var hanaOptions = xsenv.getServices({
 	hana: {
@@ -28,6 +29,21 @@ var port = process.env.PORT || 3000;
 app.listen(port, function () {
 	console.info("Listening on port: " + port);
 });
+
+var sort_by = function(field, reverse, primer){
+   reverse = (reverse) ? -1 : 1;
+   return function(a,b){
+       a = a[field];
+       b = b[field];
+       if (typeof(primer) != 'undefined'){
+           a = primer(a);
+           b = primer(b);
+       }
+       if (a<b) return reverse * -1;
+       if (a>b) return reverse * 1;
+       return 0;
+   }
+};
 
 function execInsertRailDirection(req, res, vODPTRailDirection, inboundRailDirection) {
 	var sql = 'INSERT INTO "opd-test.opd-test-db::tables.RailDirection" VALUES(\'' +
@@ -160,8 +176,9 @@ async function waitAllForHiraganaInsertWrapper(req, res, array, vInsertTarget) {
 	res.status(200).json(array);
 }
 
+/*　オリジナルバージョン
 app.post('/Inbound', function (req, res) {
-	console.log("Hello!!");
+	console.log("Hello!");
 	var InRailway = req.body.conversation.memory.line.value;
 	var InStation = req.body.conversation.memory.station.value;
 	var InDirection = req.body.conversation.memory.direction.value;
@@ -220,7 +237,7 @@ app.post('/Inbound', function (req, res) {
 								}
 							]
 						};
-						console.log("Here");
+						
 						console.log(httpResponse);
 						res.status(200).json(httpResponse);
 					});
@@ -230,6 +247,253 @@ app.post('/Inbound', function (req, res) {
 			}
 		});
 	});
+});
+*/
+
+app.post('/Inbound', function (req, res) {
+	try{
+		/*
+		var InSearchTerm = {
+			InRailway : req.body.conversation.memory.line.value,
+			InStationOn : req.body.conversation.memory.stationOn.value,
+			InStationOff : req.body.conversation.memory.stationOff.value,
+			InTime : req.body.conversation.memory.time.value,
+			InIsHoliday : req.body.conversation.memory.isHoliday.value
+		};
+	*/
+		var InSearchTerm = {
+			InRailway : "半蔵門線",
+			InStationOn : "渋谷",
+			InStationOff : "九段下",
+			InTime : "8時15分",
+			InIsHoliday : "平日"
+		};
+		
+
+		/*平日・休日フラグをodptフォーマットに変換*/
+		if(InSearchTerm.InIsHoliday == "休日"){
+			InSearchTerm.InOdptCalendar = 'odpt.Calendar:StaturdayHoliday';
+		} else {
+			InSearchTerm.InOdptCalendar = 'odpt.Calendar:Weekday';
+		};
+	
+		// InTimeの整形ロジック
+		// Issue #15
+		// 8時15分で来る場合
+		var InTimeFormatted = moment(InSearchTerm.InTime,'HH時mm分');
+		var MaxTimeFormatted = moment(InSearchTerm.InTime,'HH時mm分').add(1,'hours');
+		/*
+		// 半角数字で来る場合 InTime = 8
+		InTimeFormatted = moment('00:00');
+		InTimeFormatted.add(InTime,'hours');
+		*/
+		
+		//方面情報取得
+		/*
+		select TOP 1 "odptOperator","odptRailway","odptStationOn","odptStationOff","odptRailDirection" 
+		 from "opd-test.opd-test-db::zf_getDirection"('渋谷','九段下','半蔵門線');
+		*/
+		var sql_getDirection = 'SELECT TOP 1 "odptOperator","odptRailway","odptStationOn","odptStationOff","odptRailDirection"'
+				+ 'from "opd-test.opd-test-db::zf_getDirection"'
+				+ '(\''+InSearchTerm.InStationOn+'\',\''+InSearchTerm.InStationOff+'\',\''+InSearchTerm.InRailway+'\')';
+		var oReq = req.db;
+		req.db.prepare(sql_getDirection, function (err, statement) {
+			if (err) {
+				throw "PREPAREで何かDBエラーだよ" + err.toString();
+				//res.type("text/plain").status(500).send("ERROR: " + err.toString());
+			}
+			//statement.exec([InRailway], function (err, STResult) {
+			statement.exec([], function (err, STResult) {
+				if (err) {
+					//res.type("text/plain").status(500).send("ERROR: " + err.toString());
+					throw "実行で何かDBエラーだよ" + err.toString();
+				}
+				/*時刻表取得*/
+				
+				var paramApiStation = {
+					aclConsumerKey		: "d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e",
+					odptOperator		: STResult[0].odptOperator,
+					odptRailway 		: STResult[0].odptRailway,
+					odptStationOn 		: STResult[0].odptStationOn,
+					odptStationOff 		: STResult[0].odptStationOff,
+					odptRailDirection	: STResult[0].odptRailDirection,
+					odptCalendar		: InSearchTerm.InOdptCalendar
+				};
+				
+				var URL_stationTimetable = "https://api-tokyochallenge.odpt.org/api/v4/odpt:StationTimetable" +
+					"?acl:consumerKey=" + paramApiStation.aclConsumerKey +
+					"&odpt:operator=" + paramApiStation.odptOperator +
+					"&odpt:railway=" + paramApiStation.odptRailway +
+					"&odpt:station=" + paramApiStation.odptStationOn +
+					"&odpt:railDirection=" + paramApiStation.odptRailDirection +
+					"&odpt:calendar=" + paramApiStation.odptCalendar;
+				
+				https.get(URL_stationTimetable, function (getRes) {
+					var body = "";
+					getRes.setEncoding('utf8');
+					getRes.on('data', function (chunk) {
+						body += chunk;
+					});
+					getRes.on('end', function () {
+						var oBody = JSON.parse(body);
+						var odptResult = oBody[0]["odpt:stationTimetableObject"];
+						
+						/*取得した時刻表を時間で絞込み*/
+						var TimeTables = [];
+						var TimeTable = {};
+						odptResult.forEach(function (element) {
+							var departureTime = moment(element["odpt:departureTime"],"HH:mm");
+							TimeTable = {
+								odptDepatureTime		: element["odpt:departureTime"],
+								odptTrain				: element["odpt:train"],
+								odptTrainType			: element["odpt:trainType"],
+								odptDestinationStation	: element["odpt:destinationStation"][0]
+							};
+							//console.log("Train:" + TimeTable.odptTrain);
+							//console.log("InTime:" + InTimeFormatted.format("HH:mm") + " MaxTime:" + MaxTimeFormatted.format("HH:mm") + " trainTime:"+ departureTime.format("HH:mm"));
+							if(departureTime.isBetween(InTimeFormatted,MaxTimeFormatted))
+								TimeTables.push(TimeTable);
+						});
+						console.log("取得Train数: "+TimeTables.length);
+						
+						/*Timetable 行先で絞込み*/
+						var promise_timetables_dest = [];
+						TimeTables.forEach(function (timetable){
+							
+							promise_timetables_dest.push(new Promise(function(resolve, reject){
+								
+								var URL_trainTimetable = "https://api-tokyochallenge.odpt.org/api/v4/odpt:TrainTimetable" +
+									"?acl:consumerKey=" + paramApiStation.aclConsumerKey +
+									"&odpt:operator=" + paramApiStation.odptOperator +
+									"&odpt:calendar=" + paramApiStation.odptCalendar +
+									"&odpt:train=" + timetable["odptTrain"];
+								//console.log(URL_trainTimetable);
+								https.get(URL_trainTimetable, function (getRes) {
+									var body = "";
+									getRes.setEncoding('utf8');
+									getRes.on('data', function (chunk) {
+										body += chunk;
+									});
+									getRes.on('end', function () {
+										//console.log(body);
+										var oBody = JSON.parse(body);
+										var odptResult = oBody[0]["odpt:trainTimetableObject"];
+										var is_stopped = false
+										
+										var promise_train = [];
+										odptResult.forEach(function (element) {
+											
+											if(element["odpt:departureStation"] == paramApiStation.odptStationOff){
+												is_stopped = true;
+											}
+											else{
+												//console.log(timetable.odptDepatureTime+ "は止まらない");
+											};
+										});
+										if(is_stopped == true){
+											resolve(timetable);
+										}else{
+											resolve("NS");
+										}
+									});
+								}).on('error', function (err) {
+									res.type("text/plain").status(500).send("ERROR: " + err.toString());;
+								});		
+							}));
+						});
+
+						Promise.all(promise_timetables_dest).then(function(TimeTables_dest){
+							/*タイプ(Express->急行, Local->普通)変換*/
+							var promise_timetables_type = [];
+							console.log("Type: " +TimeTables_dest.length);
+							TimeTables_dest.forEach(function(timetable){
+								if(timetable != "NS"){ //停車する駅のみを対象とする
+									promise_timetables_type.push(new Promise(function(resolve, reject){
+										var URL = "https://api-tokyochallenge.odpt.org/api/v4/odpt:TrainType" +
+											"?acl:consumerKey=" + paramApiStation.aclConsumerKey +
+											"&odpt:operator=" + paramApiStation.odptOperator +
+											"&owl:sameAs=" + timetable["odptTrainType"];
+										https.get(URL, function (getRes) {
+											var body = "";
+											getRes.setEncoding('utf8');
+											getRes.on('data', function (chunk) {
+												body += chunk;
+											});
+											getRes.on('end', function () {
+												var oBody = JSON.parse(body);
+												console.log(body);
+												timetable.typeTitle = oBody[0]["dc:title"];
+												
+												
+												//終着駅の行先日本語名を取得
+												//SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" WHERE "odptStation" ='odpt.Station:TokyoMetro.Hanzomon.Kudanshita'
+												var sql_getDestination = 'SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" '
+													+ 'WHERE "odptStation"=\'' + timetable["odptDestinationStation"] + '\''; 
+												req.db.prepare(sql_getDestination, function (err, statement) {
+													if (err) {
+														throw "PREPAREで何かDBエラーだよ" + err.toString();
+														//res.type("text/plain").status(500).send("ERROR: " + err.toString());
+													}
+													//statement.exec([InRailway], function (err, STResult) {
+													statement.exec([], function (err, STResult) {
+														if (err) {
+															//res.type("text/plain").status(500).send("ERROR: " + err.toString());
+															throw "PREPAREで何かDBエラーだよ" + err.toString();
+														}
+													//console.log(sql_getDestination);
+													timetable.odptDestinationStationTXT = STResult[0].Destination;
+													resolve(timetable);
+													});
+												});
+											});
+										}).on('error', function (err) {
+											res.type("text/plain").status(500).send("ERROR: " + err.toString());;
+										});
+									}));
+								};
+							});
+							
+							Promise.all(promise_timetables_type).then(function(TimeTables_type){
+								/*時刻でソート*/
+								TimeTables_type.sort(sort_by('odptDepatureTime', false, function(a){return a.toUpperCase()}));
+								
+								var timeTableTXT = "";
+								for(var trainNum = 0; trainNum < TimeTables_type.length ; trainNum++){
+									timeTableTXT += TimeTables_type[trainNum].odptDepatureTime + " " + TimeTables_type[trainNum].typeTitle + " " + TimeTables_type[trainNum].odptDestinationStationTXT + "行 ";
+									if(trainNum===9){
+										break;
+									}
+								};
+								if (TimeTables_type.length === 0){
+									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
+								}else{
+									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum+1)+"本の電車は、" + timeTableTXT + "がありまっせ。";
+								}
+								var httpResponse = {
+									"replies": [
+										{
+											"type": "text",
+											"content": MY_TEXT
+										}
+									]
+								};
+								console.log("Here");
+								console.log(httpResponse);
+								res.status(200).json(httpResponse);
+							})
+						});
+					});
+				}).on('error', function (err) {
+					res.type("text/plain").status(500).send("ERROR: " + err.toString());
+				});
+			});
+		});
+	}
+	catch(e){
+		console.log("catch");
+		console.log(e);
+		res.type("text/plain").status(500).send(e);
+	}
 });
 
 app.get('/insertRailway', function (req, res) {
