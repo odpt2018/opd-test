@@ -1,5 +1,6 @@
 namespace "opd-test"."opd-test-db";
 
+/*@@layout{"layoutInfo":{"x":-367,"y":-93}}*/
 context tables {
 
     /*@@layout{"layoutInfo":{}}*/
@@ -47,7 +48,7 @@ context tables {
         InboundWord       : String(100);
     };
 
-    /*@@layout{"layoutInfo":{"x":27,"y":152.5}}*/
+    /*@@layout{"layoutInfo":{"x":-84,"y":94.5}}*/
     entity TrainType {
         odptOperator     : String(100);
         odptTrainType    : String(100);

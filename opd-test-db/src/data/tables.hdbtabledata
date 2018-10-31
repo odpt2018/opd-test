@@ -20,6 +20,71 @@
                     "odptTrainTypeTxt"
                 ]
             }
+        },
+        {
+            "target_table": "opd-test.opd-test-db::tables.Table_RailDirection",
+            "source_data": {
+                "data_type": "CSV",
+                "file_name": "opd-test.opd-test-db.data::Table_RailDirection.csv",
+                "has_header": true,
+                "delete_existing_foreign_data": true,
+                "dialect"   : "HANA",  
+                "type_config" : { 
+                  "delimiter" : "," 
+                } 
+            },
+            "import_settings": {
+                "import_columns": [
+                    "odptRailway",
+                    "odptRailDirection",
+                    "UpDown",
+                    "InboundWord",
+                    "odptOperator"
+                ]
+            }
+        },
+        {
+            "target_table": "opd-test.opd-test-db::tables.Table_Railway",
+            "source_data": {
+                "data_type": "CSV",
+                "file_name": "opd-test.opd-test-db.data::Table_Railway.csv",
+                "has_header": true,
+                "delete_existing_foreign_data": true,
+                "dialect"   : "HANA",  
+                "type_config" : { 
+                  "delimiter" : "," 
+                } 
+            },
+            "import_settings": {
+                "import_columns": [
+                    "odptRailway",
+                    "InboundWord",
+                    "odptStation",
+                    "odptIndex",
+                    "odptOperator"
+                ]
+            }
+        },
+        {
+            "target_table": "opd-test.opd-test-db::tables.Table_Station",
+            "source_data": {
+                "data_type": "CSV",
+                "file_name": "opd-test.opd-test-db.data::Table_Station.csv",
+                "has_header": true,
+                "delete_existing_foreign_data": true,
+                "dialect"   : "HANA",  
+                "type_config" : { 
+                  "delimiter" : "," 
+                } 
+            },
+            "import_settings": {
+                "import_columns": [
+                    "odptRailway",
+                    "odptStation",
+                    "InboundWord",
+                    "odptOperator"
+                ]
+            }
         }
     ]
 }
