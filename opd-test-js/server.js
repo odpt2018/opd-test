@@ -253,6 +253,9 @@ app.post('/Inbound', function (req, res) {
 app.post('/Inbound', function (req, res) {
 	try{
 		console.log("body:"+req.body);
+		
+		var trace_level = "ERROR";
+		
 		var InSearchTerm = {
 			InRailway : req.body.conversation.memory.line.value,
 			InStationOn : req.body.conversation.memory.stationOn.value,
@@ -412,7 +415,19 @@ app.post('/Inbound', function (req, res) {
 											
 											if(element["odpt:departureStation"] == paramApiStation.odptStationOff){
 												is_stopped = true;
+												if(trace_level == 'DEBUG'){
+													console.log("[DEBUG] Stopped");
+													console.log(timetable);
+													console.log(URL_trainTimetable);
+												}
 											}
+											if(element["odpt:arrivalStation"] == paramApiStation.odptStationOff){
+												is_stopped = true;
+												if(trace_level == 'DEBUG'){
+													console.log("[DEBUG] Stopped");
+													console.log(timetable);
+													console.log(URL_trainTimetable);
+												}											}
 											else{
 												//console.log(timetable.odptDepatureTime+ "は止まらない");
 											};
@@ -420,7 +435,11 @@ app.post('/Inbound', function (req, res) {
 										if(is_stopped == true){
 											resolve(timetable);
 										}else{
-											resolve("NS");
+											if(trace_level == 'DEBUG'){
+												console.log("[DEBUG] NOT Stopped");
+												console.log(timetable);
+												console.log(URL_trainTimetable);
+											}
 										}
 									});
 								}).on('error', function (err) {
@@ -432,7 +451,6 @@ app.post('/Inbound', function (req, res) {
 						Promise.all(promise_timetables_dest).then(function(TimeTables_dest){
 							/*タイプ(Express->急行, Local->普通)変換*/
 							var promise_timetables_type = [];
-							console.log("Type: " +TimeTables_dest.length);
 							TimeTables_dest.forEach(function(timetable){
 								if(timetable != "NS"){ //停車する駅のみを対象とする
 									promise_timetables_type.push(new Promise(function(resolve, reject){
