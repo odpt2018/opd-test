@@ -252,6 +252,7 @@ app.post('/Inbound', function (req, res) {
 
 app.post('/Inbound', function (req, res) {
 	try{
+		console.log("body:"+req.body);
 		var InSearchTerm = {
 			InRailway : req.body.conversation.memory.line.value,
 			InStationOn : req.body.conversation.memory.stationOn.value,
@@ -268,7 +269,7 @@ app.post('/Inbound', function (req, res) {
 			InIsHoliday : "平日"
 		};
 	*/	
-
+		console.log("[logs] Railway:" + InSearchTerm.InRailway + ", StationOn:" + InSearchTerm.InStationOn + ", StationOff" + InSearchTerm.InStationOff + ", Time" + InSearchTerm.InTime + ", IsHoliday" + InSearchTerm.InIsHoliday);
 		/*平日・休日フラグをodptフォーマットに変換*/
 		if(InSearchTerm.InIsHoliday == "休日"){
 			InSearchTerm.InOdptCalendar = 'odpt.Calendar:StaturdayHoliday';
@@ -298,17 +299,44 @@ app.post('/Inbound', function (req, res) {
 		var oReq = req.db;
 		req.db.prepare(sql_getDirection, function (err, statement) {
 			if (err) {
-				throw "PREPAREで何かDBエラーだよ" + err.toString();
+				var ExceptionDatabasePrepError = {
+					category : "dbError", 
+					message: "SQLのPREPAREでエラーがおきたよん: " + err.toString(),	
+				};
+				throw ExceptionDatabasePrepError;
 				//res.type("text/plain").status(500).send("ERROR: " + err.toString());
 			}
 			//statement.exec([InRailway], function (err, STResult) {
 			statement.exec([], function (err, STResult) {
 				if (err) {
 					//res.type("text/plain").status(500).send("ERROR: " + err.toString());
-					throw "実行で何かDBエラーだよ" + err.toString();
+					var ExceptionDatabaseExecError = {
+						category : "dbError", 
+						message: "SQLの実行でエラーがおきたよん" + err.toString(),	
+					};
+					
+					throw ExceptionDatabaseExecError;
+				}
+				if (!STResult.length ){
+					//路線情報が取得できない(路線・駅名などが間違っている)
+					var ErrorUnableGetRailway = {
+						category : "noResult", 
+						message: "何か入力エラーだのねん。",	
+
+					};
+					var httpResponse = {
+						"replies": [
+							{
+								"type": "text",
+								"content": ErrorUnableGetRailway.message
+							}
+						]
+					};	
+					res.status(200).json(httpResponse);
+					return;
+						//throw ErrorUnableGetRailway;
 				}
 				/*時刻表取得*/
-				
 				var paramApiStation = {
 					aclConsumerKey		: "d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e",
 					odptOperator		: STResult[0].odptOperator,
@@ -420,7 +448,7 @@ app.post('/Inbound', function (req, res) {
 											});
 											getRes.on('end', function () {
 												var oBody = JSON.parse(body);
-												console.log(body);
+												//console.log(body);
 												timetable.typeTitle = oBody[0]["dc:title"];
 												
 												
@@ -439,8 +467,9 @@ app.post('/Inbound', function (req, res) {
 															//res.type("text/plain").status(500).send("ERROR: " + err.toString());
 															throw "PREPAREで何かDBエラーだよ" + err.toString();
 														}
-													//console.log(sql_getDestination);
-													timetable.odptDestinationStationTXT = STResult[0].Destination;
+														if (STResult.length ){
+															timetable.odptDestinationStationTXT = STResult[0].Destination;
+														}
 													resolve(timetable);
 													});
 												});
@@ -489,9 +518,21 @@ app.post('/Inbound', function (req, res) {
 		});
 	}
 	catch(e){
-		console.log("catch");
 		console.log(e);
-		res.type("text/plain").status(500).send(e);
+		if(e.category == "noResult"){
+			var httpResponse = {
+				"replies": [
+					{
+						"type": "text",
+						"content": e.message
+					}
+				]
+			};	
+			res.status(200).json(httpResponse);
+		}
+		else{
+			res.type("text/plain").status(500).send(e.message);
+		}
 	}
 });
 
