@@ -275,7 +275,7 @@ app.post('/Inbound', function (req, res) {
 		console.log("[logs] Railway:" + InSearchTerm.InRailway + ", StationOn:" + InSearchTerm.InStationOn + ", StationOff" + InSearchTerm.InStationOff + ", Time" + InSearchTerm.InTime + ", IsHoliday" + InSearchTerm.InIsHoliday);
 		/*平日・休日フラグをodptフォーマットに変換*/
 		if(InSearchTerm.InIsHoliday == "休日"){
-			InSearchTerm.InOdptCalendar = 'odpt.Calendar:StaturdayHoliday';
+			InSearchTerm.InOdptCalendar = 'odpt.Calendar:SaturdayHoliday';
 		} else {
 			InSearchTerm.InOdptCalendar = 'odpt.Calendar:Weekday';
 		};
@@ -366,6 +366,24 @@ app.post('/Inbound', function (req, res) {
 					});
 					getRes.on('end', function () {
 						var oBody = JSON.parse(body);
+						if(!oBody[0]){
+							console.log("Error: Cannot get station Timetable with below URL;");
+							console.log(URL_stationTimetable);
+							var ErrorUnableGetAPI = {
+								category : "apiError", 
+								message: "APIからデータがとれなかったのねん",	
+							};
+							var httpResponse = {
+								"replies": [
+									{
+										"type": "text",
+										"content": ErrorUnableGetAPI.message
+									}
+								]
+							};	
+							res.status(200).json(httpResponse);
+							return;
+						}
 						var odptResult = oBody[0]["odpt:stationTimetableObject"];
 						
 						/*取得した時刻表を時間で絞込み*/
