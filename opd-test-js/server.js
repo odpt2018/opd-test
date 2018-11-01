@@ -252,7 +252,6 @@ app.post('/Inbound', function (req, res) {
 
 app.post('/Inbound', function (req, res) {
 	try{
-		/*
 		var InSearchTerm = {
 			InRailway : req.body.conversation.memory.line.value,
 			InStationOn : req.body.conversation.memory.stationOn.value,
@@ -260,7 +259,7 @@ app.post('/Inbound', function (req, res) {
 			InTime : req.body.conversation.memory.time.value,
 			InIsHoliday : req.body.conversation.memory.isHoliday.value
 		};
-	*/
+	/*
 		var InSearchTerm = {
 			InRailway : "半蔵門線",
 			InStationOn : "渋谷",
@@ -268,7 +267,7 @@ app.post('/Inbound', function (req, res) {
 			InTime : "8時15分",
 			InIsHoliday : "平日"
 		};
-		
+	*/	
 
 		/*平日・休日フラグをodptフォーマットに変換*/
 		if(InSearchTerm.InIsHoliday == "休日"){
