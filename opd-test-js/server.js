@@ -425,6 +425,25 @@ app.post('/Inbound', function (req, res) {
 									getRes.on('end', function () {
 										//console.log(body);
 										var oBody = JSON.parse(body);
+										if(!oBody[0]){
+											console.log("Error: Cannot get station Timetable with below URL;");
+											console.log(URL_stationTimetable);
+											var ErrorUnableGetAPI = {
+												category : "apiError", 
+												message: "APIからデータがとれなかったのねん",	
+											};
+											var httpResponse = {
+												"replies": [
+													{
+														"type": "text",
+														"content": ErrorUnableGetAPI.message
+													}
+												]
+											};	
+											res.status(200).json(httpResponse);
+											return;
+										}										
+										
 										var odptResult = oBody[0]["odpt:trainTimetableObject"];
 										var is_stopped = false
 										
