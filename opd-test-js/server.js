@@ -254,7 +254,13 @@ app.post('/Inbound', function (req, res) {
 	try{
 		console.log("body:"+req.body);
 		
-		var trace_level = "ERROR";
+		var trace_level = {
+			// ERROR = 0, INFO = 1, DEBUG = 2
+			Common: 1,
+			Direction : 2,
+			GetTimetable : 2,
+			Destination : 2
+		};
 		
 		var InSearchTerm = {
 			InRailway : req.body.conversation.memory.line.value,
@@ -272,7 +278,9 @@ app.post('/Inbound', function (req, res) {
 			InIsHoliday : "平日"
 		};
 	*/	
-		console.log("[logs] Railway:" + InSearchTerm.InRailway + ", StationOn:" + InSearchTerm.InStationOn + ", StationOff" + InSearchTerm.InStationOff + ", Time" + InSearchTerm.InTime + ", IsHoliday" + InSearchTerm.InIsHoliday);
+		if(trace_level.Common == 1){
+			console.log("[logs] Railway:" + InSearchTerm.InRailway + ", StationOn: " + InSearchTerm.InStationOn + ", StationOff: " + InSearchTerm.InStationOff + ", Time" + InSearchTerm.InTime + ", IsHoliday: " + InSearchTerm.InIsHoliday);
+		}
 		/*平日・休日フラグをodptフォーマットに変換*/
 		if(InSearchTerm.InIsHoliday == "休日"){
 			InSearchTerm.InOdptCalendar = 'odpt.Calendar:SaturdayHoliday';
@@ -402,8 +410,9 @@ app.post('/Inbound', function (req, res) {
 							if(departureTime.isBetween(InTimeFormatted,MaxTimeFormatted))
 								TimeTables.push(TimeTable);
 						});
-						console.log("取得Train数: "+TimeTables.length);
-						
+						if(trace_level.Common == 1){
+							console.log("取得Train数: "+TimeTables.length);
+						}
 						/*Timetable 行先で絞込み*/
 						var promise_timetables_dest = [];
 						TimeTables.forEach(function (timetable){
@@ -448,23 +457,24 @@ app.post('/Inbound', function (req, res) {
 										var is_stopped = false
 										
 										var promise_train = [];
+										if(trace_level.Destination ==2){
+													console.log("[DEBUG]"+timetable);
+													console.log("[DEBUG]"+URL_trainTimetable);
+										}
 										odptResult.forEach(function (element) {
 											
 											if(element["odpt:departureStation"] == paramApiStation.odptStationOff){
 												is_stopped = true;
-												if(trace_level == 'DEBUG'){
+												if(trace_level.Destination == 'DEBUG'){
 													console.log("[DEBUG] Stopped");
-													console.log(timetable);
-													console.log(URL_trainTimetable);
 												}
 											}
 											if(element["odpt:arrivalStation"] == paramApiStation.odptStationOff){
 												is_stopped = true;
-												if(trace_level == 'DEBUG'){
+												if(trace_level.Destination == 2){
 													console.log("[DEBUG] Stopped");
-													console.log(timetable);
-													console.log(URL_trainTimetable);
-												}											}
+												}											
+											}
 											else{
 												//console.log(timetable.odptDepatureTime+ "は止まらない");
 											};
@@ -472,11 +482,10 @@ app.post('/Inbound', function (req, res) {
 										if(is_stopped == true){
 											resolve(timetable);
 										}else{
-											if(trace_level == 'DEBUG'){
+											if(trace_level.Destination == 2){
 												console.log("[DEBUG] NOT Stopped");
-												console.log(timetable);
-												console.log(URL_trainTimetable);
 											}
+											resolve("NS");
 										}
 									});
 								}).on('error', function (err) {
@@ -484,10 +493,13 @@ app.post('/Inbound', function (req, res) {
 								});		
 							}));
 						});
-
+						
 						Promise.all(promise_timetables_dest).then(function(TimeTables_dest){
 							/*タイプ(Express->急行, Local->普通)変換*/
 							var promise_timetables_type = [];
+							if(trace_level.Common == 1){
+								console.log("取得Train数(Dest): "+TimeTables_dest.length);
+							}
 							TimeTables_dest.forEach(function(timetable){
 								if(timetable != "NS"){ //停車する駅のみを対象とする
 									promise_timetables_type.push(new Promise(function(resolve, reject){
@@ -542,15 +554,15 @@ app.post('/Inbound', function (req, res) {
 								
 								var timeTableTXT = "";
 								for(var trainNum = 0; trainNum < TimeTables_type.length ; trainNum++){
-									timeTableTXT += TimeTables_type[trainNum].odptDepatureTime + " " + TimeTables_type[trainNum].typeTitle + " " + TimeTables_type[trainNum].odptDestinationStationTXT + "行 ";
-									if(trainNum===9){
+									if(trainNum===10){
 										break;
 									}
+									timeTableTXT += TimeTables_type[trainNum].odptDepatureTime + " " + TimeTables_type[trainNum].typeTitle + " " + TimeTables_type[trainNum].odptDestinationStationTXT + "行 ";
 								};
 								if (TimeTables_type.length === 0){
 									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
 								}else{
-									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum+1)+"本の電車は、" + timeTableTXT + "がありまっせ。";
+									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、" + timeTableTXT + "がありまっせ。";
 								}
 								var httpResponse = {
 									"replies": [
