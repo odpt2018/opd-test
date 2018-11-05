@@ -22,7 +22,7 @@
             }
         },
         {
-            "target_table": "opd-test.opd-test-db::tables.Table_RailDirection",
+            "target_table": "opd-test.opd-test-db::tables.RailDirection",
             "source_data": {
                 "data_type": "CSV",
                 "file_name": "opd-test.opd-test-db.data::Table_RailDirection.csv",
@@ -44,7 +44,7 @@
             }
         },
         {
-            "target_table": "opd-test.opd-test-db::tables.Table_Railway",
+            "target_table": "opd-test.opd-test-db::tables.Railway",
             "source_data": {
                 "data_type": "CSV",
                 "file_name": "opd-test.opd-test-db.data::Table_Railway.csv",
@@ -66,7 +66,7 @@
             }
         },
         {
-            "target_table": "opd-test.opd-test-db::tables.Table_Station",
+            "target_table": "opd-test.opd-test-db::tables.Station",
             "source_data": {
                 "data_type": "CSV",
                 "file_name": "opd-test.opd-test-db.data::Table_Station.csv",

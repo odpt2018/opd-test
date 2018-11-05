@@ -252,7 +252,10 @@ app.post('/Inbound', function (req, res) {
 
 app.post('/Inbound', function (req, res) {
 	try{
-		/*
+		console.log("body:"+req.body);
+		
+		var trace_level = "ERROR";
+		
 		var InSearchTerm = {
 			InRailway : req.body.conversation.memory.line.value,
 			InStationOn : req.body.conversation.memory.stationOn.value,
@@ -260,7 +263,7 @@ app.post('/Inbound', function (req, res) {
 			InTime : req.body.conversation.memory.time.value,
 			InIsHoliday : req.body.conversation.memory.isHoliday.value
 		};
-	*/
+	/*
 		var InSearchTerm = {
 			InRailway : "半蔵門線",
 			InStationOn : "渋谷",
@@ -268,11 +271,11 @@ app.post('/Inbound', function (req, res) {
 			InTime : "8時15分",
 			InIsHoliday : "平日"
 		};
-		
-
+	*/	
+		console.log("[logs] Railway:" + InSearchTerm.InRailway + ", StationOn:" + InSearchTerm.InStationOn + ", StationOff" + InSearchTerm.InStationOff + ", Time" + InSearchTerm.InTime + ", IsHoliday" + InSearchTerm.InIsHoliday);
 		/*平日・休日フラグをodptフォーマットに変換*/
 		if(InSearchTerm.InIsHoliday == "休日"){
-			InSearchTerm.InOdptCalendar = 'odpt.Calendar:StaturdayHoliday';
+			InSearchTerm.InOdptCalendar = 'odpt.Calendar:SaturdayHoliday';
 		} else {
 			InSearchTerm.InOdptCalendar = 'odpt.Calendar:Weekday';
 		};
@@ -299,17 +302,44 @@ app.post('/Inbound', function (req, res) {
 		var oReq = req.db;
 		req.db.prepare(sql_getDirection, function (err, statement) {
 			if (err) {
-				throw "PREPAREで何かDBエラーだよ" + err.toString();
+				var ExceptionDatabasePrepError = {
+					category : "dbError", 
+					message: "SQLのPREPAREでエラーがおきたよん: " + err.toString(),	
+				};
+				throw ExceptionDatabasePrepError;
 				//res.type("text/plain").status(500).send("ERROR: " + err.toString());
 			}
 			//statement.exec([InRailway], function (err, STResult) {
 			statement.exec([], function (err, STResult) {
 				if (err) {
 					//res.type("text/plain").status(500).send("ERROR: " + err.toString());
-					throw "実行で何かDBエラーだよ" + err.toString();
+					var ExceptionDatabaseExecError = {
+						category : "dbError", 
+						message: "SQLの実行でエラーがおきたよん" + err.toString(),	
+					};
+					
+					throw ExceptionDatabaseExecError;
+				}
+				if (!STResult.length ){
+					//路線情報が取得できない(路線・駅名などが間違っている)
+					var ErrorUnableGetRailway = {
+						category : "noResult", 
+						message: "何か入力エラーだのねん。",	
+
+					};
+					var httpResponse = {
+						"replies": [
+							{
+								"type": "text",
+								"content": ErrorUnableGetRailway.message
+							}
+						]
+					};	
+					res.status(200).json(httpResponse);
+					return;
+						//throw ErrorUnableGetRailway;
 				}
 				/*時刻表取得*/
-				
 				var paramApiStation = {
 					aclConsumerKey		: "d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e",
 					odptOperator		: STResult[0].odptOperator,
@@ -336,6 +366,24 @@ app.post('/Inbound', function (req, res) {
 					});
 					getRes.on('end', function () {
 						var oBody = JSON.parse(body);
+						if(!oBody[0]){
+							console.log("Error: Cannot get station Timetable with below URL;");
+							console.log(URL_stationTimetable);
+							var ErrorUnableGetAPI = {
+								category : "apiError", 
+								message: "APIからデータがとれなかったのねん",	
+							};
+							var httpResponse = {
+								"replies": [
+									{
+										"type": "text",
+										"content": ErrorUnableGetAPI.message
+									}
+								]
+							};	
+							res.status(200).json(httpResponse);
+							return;
+						}
 						var odptResult = oBody[0]["odpt:stationTimetableObject"];
 						
 						/*取得した時刻表を時間で絞込み*/
@@ -377,6 +425,25 @@ app.post('/Inbound', function (req, res) {
 									getRes.on('end', function () {
 										//console.log(body);
 										var oBody = JSON.parse(body);
+										if(!oBody[0]){
+											console.log("Error: Cannot get station Timetable with below URL;");
+											console.log(URL_stationTimetable);
+											var ErrorUnableGetAPI = {
+												category : "apiError", 
+												message: "APIからデータがとれなかったのねん",	
+											};
+											var httpResponse = {
+												"replies": [
+													{
+														"type": "text",
+														"content": ErrorUnableGetAPI.message
+													}
+												]
+											};	
+											res.status(200).json(httpResponse);
+											return;
+										}										
+										
 										var odptResult = oBody[0]["odpt:trainTimetableObject"];
 										var is_stopped = false
 										
@@ -385,7 +452,19 @@ app.post('/Inbound', function (req, res) {
 											
 											if(element["odpt:departureStation"] == paramApiStation.odptStationOff){
 												is_stopped = true;
+												if(trace_level == 'DEBUG'){
+													console.log("[DEBUG] Stopped");
+													console.log(timetable);
+													console.log(URL_trainTimetable);
+												}
 											}
+											if(element["odpt:arrivalStation"] == paramApiStation.odptStationOff){
+												is_stopped = true;
+												if(trace_level == 'DEBUG'){
+													console.log("[DEBUG] Stopped");
+													console.log(timetable);
+													console.log(URL_trainTimetable);
+												}											}
 											else{
 												//console.log(timetable.odptDepatureTime+ "は止まらない");
 											};
@@ -393,7 +472,11 @@ app.post('/Inbound', function (req, res) {
 										if(is_stopped == true){
 											resolve(timetable);
 										}else{
-											resolve("NS");
+											if(trace_level == 'DEBUG'){
+												console.log("[DEBUG] NOT Stopped");
+												console.log(timetable);
+												console.log(URL_trainTimetable);
+											}
 										}
 									});
 								}).on('error', function (err) {
@@ -405,7 +488,6 @@ app.post('/Inbound', function (req, res) {
 						Promise.all(promise_timetables_dest).then(function(TimeTables_dest){
 							/*タイプ(Express->急行, Local->普通)変換*/
 							var promise_timetables_type = [];
-							console.log("Type: " +TimeTables_dest.length);
 							TimeTables_dest.forEach(function(timetable){
 								if(timetable != "NS"){ //停車する駅のみを対象とする
 									promise_timetables_type.push(new Promise(function(resolve, reject){
@@ -421,7 +503,7 @@ app.post('/Inbound', function (req, res) {
 											});
 											getRes.on('end', function () {
 												var oBody = JSON.parse(body);
-												console.log(body);
+												//console.log(body);
 												timetable.typeTitle = oBody[0]["dc:title"];
 												
 												
@@ -440,8 +522,9 @@ app.post('/Inbound', function (req, res) {
 															//res.type("text/plain").status(500).send("ERROR: " + err.toString());
 															throw "PREPAREで何かDBエラーだよ" + err.toString();
 														}
-													//console.log(sql_getDestination);
-													timetable.odptDestinationStationTXT = STResult[0].Destination;
+														if (STResult.length ){
+															timetable.odptDestinationStationTXT = STResult[0].Destination;
+														}
 													resolve(timetable);
 													});
 												});
@@ -490,9 +573,21 @@ app.post('/Inbound', function (req, res) {
 		});
 	}
 	catch(e){
-		console.log("catch");
 		console.log(e);
-		res.type("text/plain").status(500).send(e);
+		if(e.category == "noResult"){
+			var httpResponse = {
+				"replies": [
+					{
+						"type": "text",
+						"content": e.message
+					}
+				]
+			};	
+			res.status(200).json(httpResponse);
+		}
+		else{
+			res.type("text/plain").status(500).send(e.message);
+		}
 	}
 });
 
