@@ -257,9 +257,9 @@ app.post('/Inbound', function (req, res) {
 		var trace_level = {
 			// ERROR = 0, INFO = 1, DEBUG = 2
 			Common: 1,
-			Direction : 2,
-			GetTimetable : 2,
-			Destination : 2
+			Direction : 1,
+			GetTimetable : 1,
+			Destination : 1
 		};
 		
 		var InSearchTerm = {
