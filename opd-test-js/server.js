@@ -549,7 +549,7 @@ app.post('/Inbound', function (req, res) {
 									if(trainNum===10){
 										break;
 									}
-									timeTableTXT += TimeTables_type[trainNum].odptDepatureTime + " " + TimeTables_type[trainNum].typeTitle + " " + TimeTables_type[trainNum].odptDestinationStationTXT + "行\n ";
+									timeTableTXT += TimeTables_type[trainNum].odptDepatureTime + " " + TimeTables_type[trainNum].typeTitle + " " + TimeTables_type[trainNum].odptDestinationStationTXT + "行\n";
 								};
 								if (TimeTables_type.length === 0){
 									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
