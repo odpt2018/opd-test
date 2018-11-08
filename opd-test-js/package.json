@@ -4,7 +4,7 @@
 		"body-parser": "latest",
 		"https": "latest",
 		"@sap/xsenv": "latest",
-		"@sap/hdbext": "latest",
+		"@sap/hdbext": "4.7.5",
 		"axios": "latest",
 		"async": "latest",
 		"moment": "latest"
