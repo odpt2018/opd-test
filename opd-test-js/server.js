@@ -237,7 +237,7 @@ app.post('/Inbound', function (req, res) {
 								}
 							]
 						};
-						
+
 						console.log(httpResponse);
 						res.status(200).json(httpResponse);
 					});
@@ -252,8 +252,9 @@ app.post('/Inbound', function (req, res) {
 
 app.post('/Inbound', function (req, res) {
 	try{
-		console.log("body:"+req.body);
-		
+		console.log("Hello inbound!");
+		console.log("body:"+JSON.stringify(req.body));
+
 		var trace_level = {
 			// ERROR = 0, INFO = 1, DEBUG = 2
 			Common: 1,
@@ -261,7 +262,7 @@ app.post('/Inbound', function (req, res) {
 			GetTimetable : 1,
 			Destination : 1
 		};
-		
+
 		var InSearchTerm = {
 			InRailway : req.body.conversation.memory.line.value,
 			InStationOn : req.body.conversation.memory.stationOn.value,
@@ -269,27 +270,27 @@ app.post('/Inbound', function (req, res) {
 			InTime : req.body.conversation.memory.time.value,
 			InIsHoliday : req.body.conversation.memory.isHoliday.value
 		};
-	
+
 		if(trace_level.Common >= 1){
 			console.log("[logs] Railway:" + InSearchTerm.InRailway + ", StationOn: " + InSearchTerm.InStationOn + ", StationOff: " + InSearchTerm.InStationOff + ", Time: " + InSearchTerm.InTime + ", IsHoliday: " + InSearchTerm.InIsHoliday);
 		}
-		
+
 		/*平日・休日フラグをodptフォーマットに変換*/
 		if(InSearchTerm.InIsHoliday == "休日"){
 			InSearchTerm.InOdptCalendar = 'odpt.Calendar:SaturdayHoliday';
 		} else {
 			InSearchTerm.InOdptCalendar = 'odpt.Calendar:Weekday';
 		};
-	
+
 		// InTimeの整形ロジック
 		// Issue #15
 		// 8時15分で来る場合 momentはHH:mm, HH, HHmm, HH時mm分のいづれも対応できていた。
 		var InTimeFormatted = moment(InSearchTerm.InTime,'HH時mm分');
 		var MaxTimeFormatted = moment(InSearchTerm.InTime,'HH時mm分').add(1,'hours');
-		
+
 		//方面情報取得
 		/*
-		select TOP 1 "odptOperator","odptRailway","odptStationOn","odptStationOff","odptRailDirection" 
+		select TOP 1 "odptOperator","odptRailway","odptStationOn","odptStationOff","odptRailDirection"
 		 from "opd-test.opd-test-db::zf_getDirection"('渋谷','九段下','半蔵門線');
 		*/
 		var sql_getDirection = 'SELECT TOP 1 "odptOperator","odptRailway","odptStationOn","odptStationOff","odptRailDirection"'
@@ -299,7 +300,7 @@ app.post('/Inbound', function (req, res) {
 		req.db.prepare(sql_getDirection, function (err, statement) {
 			if (err) {
 				var ExceptionDatabasePrepError = {
-					category : "dbError", 
+					category : "dbError",
 					message: "SQLのPREPAREでエラーがおきたよん: " + err.toString()
 				};
 				throw ExceptionDatabasePrepError;
@@ -307,17 +308,17 @@ app.post('/Inbound', function (req, res) {
 			statement.exec([], function (err, STResult) {
 				if (err) {
 					var ExceptionDatabaseExecError = {
-						category : "dbError", 
+						category : "dbError",
 						message: "SQLの実行でエラーがおきたよん" + err.toString()
 					};
-					
+
 					throw ExceptionDatabaseExecError;
 				}
 				if (!STResult.length ){
 					//路線情報が取得できない(路線・駅名などが間違っている)
 					var ErrorUnableGetRailway = {
-						category : "noResult", 
-						message: "何か入力エラーだのねん。"	
+						category : "noResult",
+						message: "何か入力エラーだのねん。"
 					};
 					var httpResponse = {
 						"replies": [
@@ -326,7 +327,7 @@ app.post('/Inbound', function (req, res) {
 								"content": ErrorUnableGetRailway.message
 							}
 						]
-					};	
+					};
 					if(trace_level.Common >= 1){
 						console.logs("何か入力エラーだのねん。");
 					}
@@ -345,7 +346,7 @@ app.post('/Inbound', function (req, res) {
 					odptRailDirection	: STResult[0].odptRailDirection,
 					odptCalendar		: InSearchTerm.InOdptCalendar
 				};
-				
+
 				var URL_stationTimetable = "https://api-tokyochallenge.odpt.org/api/v4/odpt:StationTimetable" +
 					"?acl:consumerKey=" + paramApiStation.aclConsumerKey +
 					"&odpt:operator=" + paramApiStation.odptOperator +
@@ -353,21 +354,21 @@ app.post('/Inbound', function (req, res) {
 					"&odpt:station=" + paramApiStation.odptStationOn +
 					"&odpt:railDirection=" + paramApiStation.odptRailDirection +
 					"&odpt:calendar=" + paramApiStation.odptCalendar;
-				
+
 				https.get(URL_stationTimetable, function (getRes) {
 					var body = "";
 					getRes.setEncoding('utf8');
 					getRes.on('data', function (chunk) {
 						body += chunk;
 					});
-					
+
 					getRes.on('end', function () {
 						var oBody = JSON.parse(body);
 						if(!oBody[0]){
 							console.log("Error: Cannot get Station Timetable with below URL;");
 							console.log(URL_stationTimetable);
 							var ErrorUnableGetAPI = {
-								category : "apiError", 
+								category : "apiError",
 								message: "API StationTimetable からデータがとれなかったのねん"
 							};
 							var httpResponse = {
@@ -377,13 +378,13 @@ app.post('/Inbound', function (req, res) {
 										"content": ErrorUnableGetAPI.message
 									}
 								]
-							};	
+							};
 							res.status(200).json(httpResponse);
 							return;
 							//throw ErrorUnableGetAPI;　エラーになるのでとりあえず、正常終了としてエラーを返している
 						}
 						var odptResult = oBody[0]["odpt:stationTimetableObject"];
-						
+
 						/*取得した時刻表を時間で絞込み*/
 						var TimeTables = [];
 						var TimeTable = {};
@@ -403,13 +404,13 @@ app.post('/Inbound', function (req, res) {
 						if(trace_level.Common >= 1){
 							console.log("取得Train数: "+TimeTables.length);
 						}
-						
+
 						/*Timetable 行先で絞込み*/
 						var promise_timetables_dest = [];
 						TimeTables.forEach(function (timetable){
-							
+
 							promise_timetables_dest.push(new Promise(function(resolve, reject){
-								
+
 								var URL_trainTimetable = "https://api-tokyochallenge.odpt.org/api/v4/odpt:TrainTimetable" +
 									"?acl:consumerKey=" + paramApiStation.aclConsumerKey +
 									"&odpt:operator=" + paramApiStation.odptOperator +
@@ -429,7 +430,7 @@ app.post('/Inbound', function (req, res) {
 											console.log("Error: Cannot get Train Timetable with below URL;");
 											console.log(URL_stationTimetable);
 											var ErrorUnableGetAPI = {
-												category : "apiError", 
+												category : "apiError",
 												message: "API TrainTimetable からデータがとれなかったのねん"
 											};
 											var httpResponse = {
@@ -443,18 +444,18 @@ app.post('/Inbound', function (req, res) {
 											res.status(200).json(httpResponse);
 											return;
 											//throw ErrorUnableGetAPI;　エラーになるのでとりあえず、正常終了としてエラーを返している
-										}										
-										
+										}
+
 										var odptResult = oBody[0]["odpt:trainTimetableObject"];
 										var is_stopped = false
-										
+
 										var promise_train = [];
 										if(trace_level.Destination >=2){
 													console.log("[DEBUG]"+timetable);
 													console.log("[DEBUG]"+URL_trainTimetable);
 										}
 										odptResult.forEach(function (element) {
-											
+
 											if(element["odpt:departureStation"] == paramApiStation.odptStationOff){
 												is_stopped = true;
 												if(trace_level.Destination == 'DEBUG'){
@@ -465,7 +466,7 @@ app.post('/Inbound', function (req, res) {
 												is_stopped = true;
 												if(trace_level.Destination >= 2){
 													console.log("[DEBUG] Stopped");
-												}											
+												}
 											}
 											else{
 												//console.log(timetable.odptDepatureTime+ "は止まらない");
@@ -482,10 +483,10 @@ app.post('/Inbound', function (req, res) {
 									});
 								}).on('error', function (err) {
 									res.type("text/plain").status(500).send("ERROR: " + err.toString());;
-								});		
+								});
 							}));
 						});
-						
+
 						Promise.all(promise_timetables_dest).then(function(TimeTables_dest){
 							/*タイプ(Express->急行, Local->普通)変換*/
 							var promise_timetables_type = [];
@@ -509,15 +510,15 @@ app.post('/Inbound', function (req, res) {
 												var oBody = JSON.parse(body);
 												//console.log(body);
 												timetable.typeTitle = oBody[0]["dc:title"];
-												
-												
+
+
 												//終着駅の行先日本語名を取得
 												//メモ：Stationテーブルをひらがな対応で一意にならない場合に
 												//Stationtテーブルで正かあいまい対応なのか判別させる不具合が必要(テーブルにAPIから取得したレコードについてはフラグを立てる？)
-												
+
 												//SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" WHERE "odptStation" ='odpt.Station:TokyoMetro.Hanzomon.Kudanshita'
 												var sql_getDestination = 'SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" '
-													+ 'WHERE "odptStation"=\'' + timetable["odptDestinationStation"] + '\''; 
+													+ 'WHERE "odptStation"=\'' + timetable["odptDestinationStation"] + '\'';
 												req.db.prepare(sql_getDestination, function (err, statement) {
 													if (err) {
 														throw "PREPAREで何かDBエラーだよ" + err.toString();
@@ -539,11 +540,11 @@ app.post('/Inbound', function (req, res) {
 									}));
 								};
 							});
-							
+
 							Promise.all(promise_timetables_type).then(function(TimeTables_type){
 								/*時刻でソート*/
 								TimeTables_type.sort(sort_by('odptDepatureTime', false, function(a){return a.toUpperCase()}));
-								
+
 								var timeTableTXT = "";
 								for(var trainNum = 0; trainNum < TimeTables_type.length ; trainNum++){
 									if(trainNum===10){
@@ -586,7 +587,7 @@ app.post('/Inbound', function (req, res) {
 						"content": e.message
 					}
 				]
-			};	
+			};
 			res.status(200).json(httpResponse);
 		}
 		else{

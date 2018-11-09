@@ -1,7 +1,0 @@
-npm WARN opd-test-js@1.0.0 No description
-npm WARN opd-test-js@1.0.0 No repository field.
-npm WARN opd-test-js@1.0.0 No license field.
-
-audited 1642 packages in 2.207s
-found 9 vulnerabilities (2 low, 7 high)
-  run `npm audit fix` to fix them, or `npm audit` for details

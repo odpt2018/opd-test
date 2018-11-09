@@ -17,10 +17,10 @@
 [pool-1-thread-1] INFO com.sap.di.ext.mta.proc.ProcessingRun - Verifying MTA opd_test: finished symbol resource[hdi_opd-test-db]
 [pool-1-thread-3] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-js': command timeout is 300 seconds
 [pool-1-thread-2] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-db': command timeout is 300 seconds
-[pool-1-thread-2] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-db': command output file is /Users/i035187/Desktop/opd-test/.mta/modulebuild7268685486755462238.txt
-[pool-1-thread-3] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-js': command output file is /Users/i035187/Desktop/opd-test/.mta/modulebuild8639435028885852935.txt
-[pool-1-thread-2] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-db': invoking command [npm, install, --production]
+[pool-1-thread-3] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-js': command output file is /Users/i035187/Desktop/opd-test/.mta/modulebuild2864389956182879762.txt
+[pool-1-thread-2] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-db': command output file is /Users/i035187/Desktop/opd-test/.mta/modulebuild7353203230442061859.txt
 [pool-1-thread-3] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-js': invoking command [npm, install, --production]
+[pool-1-thread-2] DEBUG com.sap.di.ext.mta.cli.CommandHelper - Module 'opd-test-db': invoking command [npm, install, --production]
 [pool-1-thread-2] INFO com.sap.di.ext.mta.proc.ProcessingRun - Verifying MTA opd_test: finished symbol module[opd-test-db]
 [pool-1-thread-3] INFO com.sap.di.ext.mta.proc.ProcessingRun - Verifying MTA opd_test: finished symbol module[opd-test-js]
 [main] INFO com.sap.di.beans.DynamicBeans - Created implementation class com.sap.di.ext.mta.dto.DeploymentDescriptor$$impl6 for bean interface com.sap.di.ext.mta.dto.DeploymentDescriptor
