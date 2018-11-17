@@ -54,4 +54,21 @@ context tables {
         odptTrainType    : String(100);
         odptTrainTypeTxt : String(100);
     };
+
+    /*@@layout{"layoutInfo":{"x":-577,"y":93.5}}*/
+    entity SearchHistory {
+        UserName          : String(100)  not null;
+        Timestamp         : UTCTimestamp not null;
+        InRailway         : String(100);
+        InStationOn       : String(100);
+        InStationOff      : String(100);
+        InTime            : String(100);
+        InIsHoliday       : String(100);
+        odptOperator      : String(100);
+        odptRailway       : String(100);
+        odptStationOn     : String(100);
+        odptStationOff    : String(100);
+        odptRailDirection : String(100);
+        odptCalendar      : String(100);
+    };
 };

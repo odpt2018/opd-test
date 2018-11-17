@@ -270,6 +270,10 @@ app.post('/Inbound', function (req, res) {
 			InTime : req.body.conversation.memory.time.value,
 			InIsHoliday : req.body.conversation.memory.isHoliday.value
 		};
+		
+		if(req.body.conversation.participant_data.userName !== void 0){
+			InSearchTerm.UserName = req.body.conversation.participant_data.userName;
+		};
 
 		if(trace_level.Common >= 1){
 			console.log("[logs] Railway:" + InSearchTerm.InRailway + ", StationOn: " + InSearchTerm.InStationOn + ", StationOff: " + InSearchTerm.InStationOff + ", Time: " + InSearchTerm.InTime + ", IsHoliday: " + InSearchTerm.InIsHoliday);
@@ -346,7 +350,31 @@ app.post('/Inbound', function (req, res) {
 					odptRailDirection	: STResult[0].odptRailDirection,
 					odptCalendar		: InSearchTerm.InOdptCalendar
 				};
-
+				
+				//UserNameが入力されている場合のみ、履歴に登録
+				if(InSearchTerm.UserName !== void 0){
+					var sql_insertHistory = 'INSERT INTO "opd-test.opd-test-db::tables.SearchHistory" values('
+											+'\''+InSearchTerm.UserName +'\','
+											+'now(),'
+											+'\''+InSearchTerm.InRailway +'\','
+											+'\''+InSearchTerm.InStationOn +'\','
+											+'\''+InSearchTerm.InStationOff +'\','
+											+'\''+InSearchTerm.InTime +'\','
+											+'\''+InSearchTerm.InIsHoliday +'\','
+											+'\''+paramApiStation.odptOperator +'\','
+											+'\''+paramApiStation.odptRailway +'\','
+											+'\''+paramApiStation.odptStationOn +'\','
+											+'\''+paramApiStation.odptStationOff +'\','
+											+'\''+paramApiStation.odptRailDirection +'\','
+											+'\''+paramApiStation.odptCalendar +'\''
+											+')';
+					req.db.exec(sql_insertHistory, function (err, results) {
+						if (err) {
+							console.log("ERROR: " + err.toString());
+						}
+					});
+				};
+				
 				var URL_stationTimetable = "https://api-tokyochallenge.odpt.org/api/v4/odpt:StationTimetable" +
 					"?acl:consumerKey=" + paramApiStation.aclConsumerKey +
 					"&odpt:operator=" + paramApiStation.odptOperator +
