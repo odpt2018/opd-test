@@ -365,7 +365,7 @@ app.post('/Inbound', function (req, res) {
 				//UserNameが入力されている場合のみ、履歴に登録
 				if(InSearchTerm.UserName !== void 0){
 					var sql_insertHistory = 'INSERT INTO "opd-test.opd-test-db::tables.SearchHistory" values('
-											+'\''+InSearchTerm.UserName +'\','
+											+'hash_sha256(to_binary(\''+InSearchTerm.UserName +'\')),'
 											+'now(),'
 											+'\''+InSearchTerm.InRailway +'\','
 											+'\''+InSearchTerm.InStationOn +'\','
