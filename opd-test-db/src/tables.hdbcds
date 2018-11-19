@@ -71,4 +71,10 @@ context tables {
         odptRailDirection : String(100);
         odptCalendar      : String(100);
     };
+
+    /*@@layout{"layoutInfo":{"x":-326,"y":92.5}}*/
+    entity Operator {
+        odptOperator  : String(100);
+        OperatorTitle : String(100);
+    };
 };
