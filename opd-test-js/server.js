@@ -48,6 +48,7 @@ var sort_by = function(field, reverse, primer){
 function execInsertRailDirection(req, res, vODPTRailDirection, inboundRailDirection) {
 	var sql = 'INSERT INTO "opd-test.opd-test-db::tables.RailDirection" VALUES(\'' +
 		vODPTRailDirection + '\',\'' + inboundRailDirection + '\')';
+	console.log(req.db);
 	req.db.exec(sql, function (err, results) {
 		if (err) {
 			res.type("text/plain").status(500).send("ERROR: " + err.toString());
@@ -71,6 +72,16 @@ function execInsertStation(req, res, vODPTRailway, vODPTStation, inboundStation)
 	req.db.exec(sql, function (err, results) {
 		if (err) {
 			res.type("text/plain").status(500).send("ERROR: " + err.toString());
+		}
+	});
+}
+
+function execInsertOperator(req, res, vODPTOperator, vODPTOperatorTitle) {
+	sql = 'INSERT INTO "opd-test.opd-test-db::tables.Operator" VALUES(\'' +
+			vODPTOperator + '\',\'' + vODPTOperatorTitle + '\')';
+	req.db.exec(sql, function (err, results) {
+		if (err) {
+			console.log("ERROR: " + err.toString());
 		}
 	});
 }
@@ -624,6 +635,39 @@ app.post('/Inbound', function (req, res) {
 	}
 });
 
+
+app.get('/insertOperator',function(req,res){
+	var sql_truncate = 'truncate table "opd-test.opd-test-db::tables.Operator"';
+	req.db.exec(sql_truncate, function (err, results) {
+		if (err) {
+			console.log("ERROR: " + err.toString());
+			res.type("text/plain").status(500).send("Update Operator table is failed during truncate");
+			return;
+		}
+
+		var URL = 
+//			"https://api-tokyochallenge.odpt.org/api/v4/odpt:Operator.json?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+			"https://api-tokyochallenge.odpt.org/api/v4/odpt:Operator?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+		
+		https.get(URL, function (getRes) {
+			var body = "";
+			getRes.setEncoding('utf8');
+			getRes.on('data', function (chunk) {
+				body += chunk;
+			});
+			getRes.on('end', function () {
+				var oBody = JSON.parse(body);
+				oBody.forEach(function (eleOperator) {
+					execInsertOperator(req, res, eleOperator["owl:sameAs"], eleOperator["dc:title"]);
+				});
+				res.type("text/plain").status(500).send("Update Operator table is triggered succeffully.");
+			});
+		}).on('error', function (err) {
+			console.log("ERROR: " + err.toString());
+			res.type("text/plain").status(500).send("Update Operator table is failed during API access");
+		});
+	});
+});
 
 
 app.get('/insertRailway', function (req, res) {
