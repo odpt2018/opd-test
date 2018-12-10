@@ -1164,10 +1164,7 @@ app.get('/insertRailway', function (req, res) {
 								}
 								if (STResult.length ){
 									operatorTitle = STResult[0].OperatorTitle;
-									//console.log( STResult[0].OperatorTitle);
 								}
-								//console.log('///////////////////////req.db in API is');
-								//console.log(req.db);
 								execInsertRailway(req, res, eleRailway["owl:sameAs"], eleRailway["dc:title"],eleRailway["odpt:operator"],operatorTitle,eleRailway["odpt:stationOrder"]);
 							});	
 						});
