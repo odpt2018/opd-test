@@ -56,14 +56,43 @@ function execInsertRailDirection(req, res, vODPTRailDirection, inboundRailDirect
 	});
 }
 
-function execInsertRailway(req, res, vODPTRailway, inboundRailway) {
-	sql = 'INSERT INTO "opd-test.opd-test-db::tables.Railway" VALUES(\'' +
-		vODPTRailway + '\',\'' + inboundRailway + '\')';
-	req.db.exec(sql, function (err, results) {
-		if (err) {
-			res.type("text/plain").status(500).send("ERROR: " + err.toString());
+function execInsertRailway(req, res, vODPTRailway, inboundRailway,vODPTOperator,vOperatorTitle,StationOrder) {
+	try{
+		var sql = '';
+		if(StationOrder.length !== 0){
+			
+			var insert_values = '';
+			var OperatorTxt = vOperatorTitle.replace(/電鉄|鉄道/,'');
+			console.log("Operator is"+vOperatorTitle + " ->" + OperatorTxt);
+			StationOrder.forEach(function (eleStation) {
+				sql = 'INSERT INTO "opd-test.opd-test-db::tables.Railway" VALUES(\''+ inboundRailway +'\',\''+ vODPTOperator + '\',\'' +vODPTRailway  + '\',\'' + eleStation["odpt:station"] + '\',\'' + eleStation["odpt:index"] +'\',0)';
+				req.db.exec(sql, function (err, results) {
+					if (err) {
+						console.log(sql);
+						console.log("ERROR: " + err.toString());
+					}
+				});
+				sql = 'INSERT INTO "opd-test.opd-test-db::tables.Railway" VALUES(\''+ OperatorTxt+inboundRailway +'\',\''+ vODPTOperator + '\',\'' + vODPTRailway + '\',\'' + eleStation["odpt:station"] + '\',\'' + eleStation["odpt:index"] +'\',0)';
+				req.db.exec(sql, function (err, results) {
+					if (err) {
+						console.log(sql);
+						console.log("ERROR: " + err.toString());
+					}
+				});
+			});
+		}else{
+			sql = 'INSERT INTO "opd-test.opd-test-db::tables.Railway" VALUES(\'' + inboundRailway  +'\',\''+ vODPTRailway + '\',\'' + vODPTOperator + '\',null,null,0)' ;
+			req.db.exec(sql, function (err, results) {
+			if (err) {
+				console.log(sql);
+				console.log("ERROR: " + err.toString());
+			}
+		});
 		}
-	});
+	}
+	catch(e){
+		console.log(e);
+	}
 }
 
 function execInsertStation(req, res, vODPTRailway, vODPTStation, inboundStation) {
@@ -311,7 +340,6 @@ app.post('/Inbound', function (req, res) {
 		var sql_getDirection = 'SELECT TOP 1 "odptOperator","odptRailway","odptStationOn","odptStationOff","odptRailDirection"'
 				+ 'from "opd-test.opd-test-db::zf_getDirection"'
 				+ '(\''+InSearchTerm.InStationOn+'\',\''+InSearchTerm.InStationOff+'\',\''+InSearchTerm.InRailway+'\')';
-		var oReq = req.db;
 		req.db.prepare(sql_getDirection, function (err, statement) {
 			if (err) {
 				var ExceptionDatabasePrepError = {
@@ -344,7 +372,7 @@ app.post('/Inbound', function (req, res) {
 						]
 					};
 					if(trace_level.Common >= 1){
-						console.logs("何か入力エラーだのねん。");
+						console.log("何か入力エラーだのねん。");
 					}
 					res.status(200).json(httpResponse);
 					return;
@@ -671,25 +699,89 @@ app.get('/insertOperator',function(req,res){
 
 
 app.get('/insertRailway', function (req, res) {
-	var URL =
-		"https://api-tokyochallenge.odpt.org/api/v4/odpt:Railway?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
-
-	https.get(URL, function (getRes) {
-		var body = "";
-		getRes.setEncoding('utf8');
-		getRes.on('data', function (chunk) {
-			body += chunk;
-		});
-		getRes.on('end', function () {
-			var oBody = JSON.parse(body);
-			oBody.forEach(function (eleRailway) {
-				execInsertRailway(req, res, eleRailway["owl:sameAs"], eleRailway["dc:title"]);
+	try{
+		var sql_truncate = 'truncate table "opd-test.opd-test-db::tables.Railway"';
+		req.db.exec(sql_truncate, function (err, results) {
+			if (err) {
+				var ErrorDBTruncateFailed = {
+					category: "DB",
+					message: "ERROR: " + err.toString()
+				};
+				throw ErrorDBTruncateFailed;
+			}	
+		
+			var URL =
+				"https://api-tokyochallenge.odpt.org/api/v4/odpt:Railway?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+		
+			https.get(URL, function (getRes) {
+				var body = "";
+				getRes.setEncoding('utf8');
+				getRes.on('data', function (chunk) {
+					body += chunk;
+				});
+				getRes.on('end', function () {
+					var oBody = JSON.parse(body);
+					oBody.forEach(function (eleRailway) {
+						var sql = 'SELECT TOP 1 "OperatorTitle" FROM "opd-test.opd-test-db::tables.Operator" ' 
+									+ 'WHERE "odptOperator" = \'' + eleRailway["odpt:operator"] +'\'';
+						//console.log("//////////////before prepare");
+						//console.log(req.db);
+						oReqDB = req.db;
+						req.db.prepare(sql, function (err, statement) {
+							//console.log("//////////////////////req just after prepare");
+							req.db = oReqDB;
+							//console.log(req.db);
+							if (err) {
+								var ErrorDBPrepareFailed = {
+									category: "DB",
+									message: "ERROR: " + err.toString()
+								};
+								throw ErrorDBPrepareFailed;
+							}
+							statement.exec([], function (err, STResult) {
+								var operatorTitle = "";
+								if (err) {
+									var ErrorDBExecFailed = {
+										category: "DB",
+										message: "ERROR: " + err.toString()
+									};
+									throw ErrorDBExecFailed;
+								}
+								if (STResult.length ){
+									operatorTitle = STResult[0].OperatorTitle;
+									//console.log( STResult[0].OperatorTitle);
+								}
+								//console.log('///////////////////////req.db in API is');
+								//console.log(req.db);
+								execInsertRailway(req, res, eleRailway["owl:sameAs"], eleRailway["dc:title"],eleRailway["odpt:operator"],operatorTitle,eleRailway["odpt:stationOrder"]);
+							});	
+						});
+					});
+					//waitAllForHiraganaInsert(req, res, oBody, "railway");
+					res.type("text/plain").status(500).send("Update Railway table is triggered succeffully.");
+				});
+			}).on('error', function (err) {
+				res.type("text/plain").status(500).send("ERROR: " + err.toString());
 			});
-			waitAllForHiraganaInsert(req, res, oBody, "railway");
 		});
-	}).on('error', function (err) {
-		res.type("text/plain").status(500).send("ERROR: " + err.toString());
-	});
+	}
+	catch(e){
+		console.log(e);
+		if(e.category == "noResult"){
+			var httpResponse = {
+				"replies": [
+					{
+						"type": "text",
+						"content": e.message
+					}
+				]
+			};
+			res.status(200).json(httpResponse);
+		}
+		else{
+			res.type("text/plain").status(500).send(e.message);
+		}
+	}
 });
 
 app.get('/insertStation', function (req, res) {
