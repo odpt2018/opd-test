@@ -316,7 +316,7 @@ app.post('/Itsumo', function(req,res) {
 			if(!results.length){
 				var ErrorUnableGetItsumono = {
 						category : "noResult",
-						message: "履歴がないYo"
+						message: "履歴がないYO"
 					};
 				var httpResponse = {
 						"replies": [
@@ -662,7 +662,7 @@ app.post('/Itsumo', function(req,res) {
 									if (TimeTables_type.length === 0){
 										var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
 									}else{
-										var MY_TEXT = "いつも検索してる、"+InSearchTerm.InRailway+"の"+InSearchTerm.InStationOn+"から"+InSearchTerm.InStationOff+"行きの"+InSearchTerm.InIsHoliday+"ダイヤで"+InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "がありまっせ。\nデータ取得日時(" + (new Date()).toString() + ")";
+										var MY_TEXT = "いつも検索してる、"+InSearchTerm.InRailway+"の"+InSearchTerm.InStationOn+"から"+InSearchTerm.InStationOff+"行きの"+InSearchTerm.InIsHoliday+"ダイヤで"+InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。\nデータ取得日時(" + (new Date()).toString() + ")";
 									}
 									var httpResponse = {
 										"replies": [
@@ -1037,7 +1037,7 @@ app.post('/Inbound', function (req, res) {
 								if (TimeTables_type.length === 0){
 									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
 								}else{
-									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "がありまっせ。\nデータ取得日時(" + (new Date()).toString() + ")";
+									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。\nデータ取得日時(" + (new Date()).toString() + ")";
 								}
 								var httpResponse = {
 									"replies": [
