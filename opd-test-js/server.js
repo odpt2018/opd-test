@@ -402,7 +402,7 @@ app.post('/Itsumo', function(req,res) {
 						//路線情報が取得できない(路線・駅名などが間違っている)
 						var ErrorUnableGetRailway = {
 							category : "noResult",
-							message: "何か入力エラーだのねん。"
+							message: "何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。"
 						};
 						var httpResponse = {
 							"replies": [
@@ -413,7 +413,7 @@ app.post('/Itsumo', function(req,res) {
 							]
 						};
 						if(trace_level.Common >= 1){
-							console.logs("何か入力エラーだのねん。");
+							console.logs("何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。");
 						}
 						res.status(200).json(httpResponse);
 						return;
@@ -777,7 +777,7 @@ app.post('/Inbound', function (req, res) {
 					//路線情報が取得できない(路線・駅名などが間違っている)
 					var ErrorUnableGetRailway = {
 						category : "noResult",
-						message: "何か入力エラーだのねん。"
+						message: "何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。"
 					};
 					var httpResponse = {
 						"replies": [
@@ -788,7 +788,7 @@ app.post('/Inbound', function (req, res) {
 						]
 					};
 					if(trace_level.Common >= 1){
-						console.log("何か入力エラーだのねん。");
+						console.log("何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。");
 					}
 					res.status(200).json(httpResponse);
 					return;
