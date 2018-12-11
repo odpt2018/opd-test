@@ -292,18 +292,19 @@ app.post('/Inbound', function (req, res) {
 app.post('/Itsumo', function(req,res) {
 	try{
 		console.log("いつもの機能がはじまるよ！");
-		//Recastからくるuser Nameを保存する変数を宣言
+		//RecastからくるIntimeとuser Name保存する変数を宣言
 		var InSearchTerm = {
+			InTime : req.body.conversation.memory.time.value,
 			InUserName : req.body.conversation.participant_data.userName
 			};
 		/*SQLを投げてよく使う検索条件を取ってくる。とりあえずTOP1の結果だけ*/
 		//SELECT TOP 1 "InRailway","InStationOn","InStationOff","InTime","InIsHoliday"
 		//FROM "OPDTESTUSER"."opd-test.opd-test-db::tables.SearchHistory"
 		//WHERE "UserName" = 'UserName';
-		var sql_SearchItsumono = 'SELECT "InRailway","InStationOn","InStationOff","InTime","InIsHoliday",COUNT(*) as "CNT"'
+		var sql_SearchItsumono = 'SELECT "InRailway","InStationOn","InStationOff","InIsHoliday",COUNT(*) as "CNT"'
 								+ 'FROM "opd-test.opd-test-db::tables.SearchHistory"'
 								+ 'WHERE "UserName"= hash_sha256(to_binary(\''+InSearchTerm.InUserName+'\'))'
-								+ 'GROUP BY "InRailway","InStationOn","InStationOff","InTime","InIsHoliday" ORDER BY CNT DESC';
+								+ 'GROUP BY "InRailway","InStationOn","InStationOff","InIsHoliday" ORDER BY CNT DESC';
 
 		//DBへSQLを投げて結果を返す
 		req.db.exec(sql_SearchItsumono, function (err, results) {
@@ -357,7 +358,7 @@ app.post('/Itsumo', function(req,res) {
 			InRailway : results[0].InRailway,
 			InStationOn : results[0].InStationOn,
 			InStationOff : results[0].InStationOff,
-			InTime : results[0].InTime,
+			InTime : req.body.conversation.memory.time.value,
 			InIsHoliday : results[0].InIsHoliday
 		};
 			/*平日・休日フラグをodptフォーマットに変換*/
