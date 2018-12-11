@@ -10,6 +10,7 @@ context tables {
         odptRailway  : String(100);
         odptStation  : String(100);
         odptIndex    : Integer;
+        TextType     : Integer default 0;
     };
 
     /*@@layout{"layoutInfo":{}}*/
@@ -18,6 +19,7 @@ context tables {
         odptStation  : String(100);
         odptOperator : String(100);
         odptRailway  : String(100);
+        TextType     : Integer default 0;
     };
 
     /*@@layout{"layoutInfo":{}}*/
