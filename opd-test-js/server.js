@@ -301,7 +301,7 @@ app.post('/Itsumo', function(req,res) {
 		//SELECT TOP 1 "InRailway","InStationOn","InStationOff","InTime","InIsHoliday"
 		//FROM "OPDTESTUSER"."opd-test.opd-test-db::tables.SearchHistory"
 		//WHERE "UserName" = 'UserName';
-		var sql_SearchItsumono = 'SELECT "InRailway","InStationOn","InStationOff","InIsHoliday",COUNT(*) as "CNT"'
+		var sql_SearchItsumono = 'SELECT TOP 1 "InRailway","InStationOn","InStationOff","InIsHoliday",COUNT(*) as "CNT"'
 								+ 'FROM "opd-test.opd-test-db::tables.SearchHistory"'
 								+ 'WHERE "UserName"= hash_sha256(to_binary(\''+InSearchTerm.InUserName+'\'))'
 								+ 'GROUP BY "InRailway","InStationOn","InStationOff","InIsHoliday" ORDER BY CNT DESC';
