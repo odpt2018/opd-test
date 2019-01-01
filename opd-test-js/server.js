@@ -676,7 +676,8 @@ app.post('/Itsumo', function(req,res) {
 													//Stationtテーブルで正かあいまい対応なのか判別させる不具合が必要(テーブルにAPIから取得したレコードについてはフラグを立てる？)
 													//SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" WHERE "odptStation" ='odpt.Station:TokyoMetro.Hanzomon.Kudanshita'
 													var sql_getDestination = 'SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" '
-														+ 'WHERE "odptStation"=\'' + timetable["odptDestinationStation"] + '\'';
+														+ 'WHERE "odptStation"=\'' + timetable["odptDestinationStation"] + '\''
+														+ 'AND "TextType" = 0';
 													req.db.prepare(sql_getDestination, function (err, statement) {
 														if (err) {
 															throw "PREPAREで何かDBエラーだよ" + err.toString();
@@ -1052,7 +1053,8 @@ app.post('/Inbound', function (req, res) {
 												//Stationtテーブルで正かあいまい対応なのか判別させる不具合が必要(テーブルにAPIから取得したレコードについてはフラグを立てる？)
 												//SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" WHERE "odptStation" ='odpt.Station:TokyoMetro.Hanzomon.Kudanshita'
 												var sql_getDestination = 'SELECT TOP 1 "InboundWord" as "Destination" FROM "opd-test.opd-test-db::tables.Station" '
-													+ 'WHERE "odptStation"=\'' + timetable["odptDestinationStation"] + '\'';
+													+ 'WHERE "odptStation"=\'' + timetable["odptDestinationStation"] + '\''
+													+ 'AND "TextType" = 0';
 												req.db.prepare(sql_getDestination, function (err, statement) {
 													if (err) {
 														throw "PREPAREで何かDBエラーだよ" + err.toString();
