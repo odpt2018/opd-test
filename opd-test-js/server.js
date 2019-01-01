@@ -140,6 +140,56 @@ function hiraganaAPI(vInboundWord, vOutputType) {
 	});
 }
 
+function datetostr(date, format, is12hours) {
+    if (!format) {
+        format = 'YYYY年MM月DD日(WW) hh:mm:dd(JST)'
+    }
+    var weekday = ["日", "月", "火", "水", "木", "金", "土"];
+    var year = date.getFullYear();
+    var month = (date.getMonth() + 1);
+    var day = date.getDate();
+    var weekday = weekday[date.getDay()];
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var secounds = date.getSeconds();
+	
+	hours = hours + 9; // GMT処理
+	
+    var ampm = hours < 12 ? '午前' : '午後';
+    
+    if (is12hours) {
+        hours = hours  % 12;
+        hours = (hours != 0) ? hours : 12; // 12時＝0時
+    }
+
+    var replaceStrArray =
+        {
+            'YYYY': year,
+            'Y': year,
+            'MM': ('0' + (month)).slice(-2),
+            'M': month,
+            'DD': ('0' + (day)).slice(-2),
+            'D': day,
+            'WW': weekday,
+            'hh': ('0' + hours).slice(-2),
+            'h': hours,
+            'mm': ('0' + minutes).slice(-2),
+            'm': minutes,
+            'ss': ('0' + secounds).slice(-2),
+            's': secounds,
+            'AP': ampm,
+        };
+
+    var replaceStr = '(' + Object.keys(replaceStrArray).join('|') + ')';
+    var regex = new RegExp(replaceStr, 'g');
+
+    ret = format.replace(regex, function (str) {
+        return replaceStrArray[str];
+    });
+
+    return ret;
+}
+
 async function hiraganaInsert(req, res, vODPTValue1, vODPTValue2, vInboundWord, vOutputType, vInsertTarget) {
 	await hiraganaAPI(vInboundWord, vOutputType)
 		.then(function (convertedVal) {
@@ -292,18 +342,19 @@ app.post('/Inbound', function (req, res) {
 app.post('/Itsumo', function(req,res) {
 	try{
 		console.log("いつもの機能がはじまるよ！");
-		//Recastからくるuser Nameを保存する変数を宣言
+		//RecastからくるIntimeとuser Name保存する変数を宣言
 		var InSearchTerm = {
+			InTime : req.body.conversation.memory.time.value,
 			InUserName : req.body.conversation.participant_data.userName
 			};
 		/*SQLを投げてよく使う検索条件を取ってくる。とりあえずTOP1の結果だけ*/
 		//SELECT TOP 1 "InRailway","InStationOn","InStationOff","InTime","InIsHoliday"
 		//FROM "OPDTESTUSER"."opd-test.opd-test-db::tables.SearchHistory"
 		//WHERE "UserName" = 'UserName';
-		var sql_SearchItsumono = 'SELECT "InRailway","InStationOn","InStationOff","InTime","InIsHoliday",COUNT(*) as "CNT"'
+		var sql_SearchItsumono = 'SELECT TOP 1 "InRailway","InStationOn","InStationOff","InIsHoliday",COUNT(*) as "CNT"'
 								+ 'FROM "opd-test.opd-test-db::tables.SearchHistory"'
 								+ 'WHERE "UserName"= hash_sha256(to_binary(\''+InSearchTerm.InUserName+'\'))'
-								+ 'GROUP BY "InRailway","InStationOn","InStationOff","InTime","InIsHoliday" ORDER BY CNT DESC';
+								+ 'GROUP BY "InRailway","InStationOn","InStationOff","InIsHoliday" ORDER BY CNT DESC';
 
 		//DBへSQLを投げて結果を返す
 		req.db.exec(sql_SearchItsumono, function (err, results) {
@@ -316,7 +367,7 @@ app.post('/Itsumo', function(req,res) {
 			if(!results.length){
 				var ErrorUnableGetItsumono = {
 						category : "noResult",
-						message: "履歴がないYo"
+						message: "履歴がないYO"
 					};
 				var httpResponse = {
 						"replies": [
@@ -357,7 +408,7 @@ app.post('/Itsumo', function(req,res) {
 			InRailway : results[0].InRailway,
 			InStationOn : results[0].InStationOn,
 			InStationOff : results[0].InStationOff,
-			InTime : results[0].InTime,
+			InTime : req.body.conversation.memory.time.value,
 			InIsHoliday : results[0].InIsHoliday
 		};
 			/*平日・休日フラグをodptフォーマットに変換*/
@@ -402,7 +453,7 @@ app.post('/Itsumo', function(req,res) {
 						//路線情報が取得できない(路線・駅名などが間違っている)
 						var ErrorUnableGetRailway = {
 							category : "noResult",
-							message: "何か入力エラーだのねん。"
+							message: "何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。"
 						};
 						var httpResponse = {
 							"replies": [
@@ -413,7 +464,7 @@ app.post('/Itsumo', function(req,res) {
 							]
 						};
 						if(trace_level.Common >= 1){
-							console.logs("何か入力エラーだのねん。");
+							console.logs("何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。");
 						}
 						res.status(200).json(httpResponse);
 						return;
@@ -662,7 +713,8 @@ app.post('/Itsumo', function(req,res) {
 									if (TimeTables_type.length === 0){
 										var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
 									}else{
-										var MY_TEXT = "いつも検索してる、"+InSearchTerm.InRailway+"の"+InSearchTerm.InStationOn+"から"+InSearchTerm.InStationOff+"行きの"+InSearchTerm.InIsHoliday+"ダイヤで"+InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "がありまっせ。";
+										//var MY_TEXT = "いつも検索してる、"+InSearchTerm.InRailway+"の"+InSearchTerm.InStationOn+"から"+InSearchTerm.InStationOff+"行きの"+InSearchTerm.InIsHoliday+"ダイヤで"+InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。\nデータ取得日時(" + (new Date()).toString() + ")";
+										var MY_TEXT = "いつも検索してる、"+InSearchTerm.InRailway+"の"+InSearchTerm.InStationOn+"から"+InSearchTerm.InStationOff+"行きの"+InSearchTerm.InIsHoliday+"ダイヤで"+InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。\nデータ取得日時(" + datetostr(new Date(), 'Y年MM月DD日(WW) AP hh:mm:ss (JST)', true) + ")";
 									}
 									var httpResponse = {
 										"replies": [
@@ -777,7 +829,7 @@ app.post('/Inbound', function (req, res) {
 					//路線情報が取得できない(路線・駅名などが間違っている)
 					var ErrorUnableGetRailway = {
 						category : "noResult",
-						message: "何か入力エラーだのねん。"
+						message: "何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。"
 					};
 					var httpResponse = {
 						"replies": [
@@ -788,7 +840,7 @@ app.post('/Inbound', function (req, res) {
 						]
 					};
 					if(trace_level.Common >= 1){
-						console.log("何か入力エラーだのねん。");
+						console.log("何か入力エラーだのねん。路線や駅名をもう一度確認してほしいのねん。");
 					}
 					res.status(200).json(httpResponse);
 					return;
@@ -1037,7 +1089,8 @@ app.post('/Inbound', function (req, res) {
 								if (TimeTables_type.length === 0){
 									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
 								}else{
-									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "がありまっせ。";
+									//var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。 \nデータ取得日時(" + (new Date()).toString() + ")";
+									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。 \nデータ取得日時(" + datetostr(new Date(), 'Y年MM月DD日(WW) AP hh:mm:ss (JST)', true) + ")";
 								}
 								var httpResponse = {
 									"replies": [
