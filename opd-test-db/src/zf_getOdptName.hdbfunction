@@ -1,0 +1,13 @@
+FUNCTION "opd-test.opd-test-db::zf_getOdptName"(IN InStation nvarchar(100), InRailway nvarchar(100))
+       RETURNS table("odptOperator" nvarchar(100), "odptRailway" nvarchar(100),"odptStation" nvarchar(100)) 
+       LANGUAGE SQLSCRIPT 
+       SQL SECURITY INVOKER AS 
+BEGIN 
+    RETURN
+	    select R1."odptOperator", R1."odptRailway", S1."odptStation" from "opd-test.opd-test-db::tables.Station" S1
+			inner join "opd-test.opd-test-db::tables.Railway" R1
+				on	S1."odptRailway" = R1. "odptRailway"
+				and S1."odptStation" = R1. "odptStation"
+			where R1."InboundWord" = InRailway
+			and S1."InboundWord" = InStation;
+END;

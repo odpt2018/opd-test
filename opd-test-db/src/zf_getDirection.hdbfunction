@@ -11,7 +11,7 @@ BEGIN
 				  WHEN SUM("OnIndex") < SUM("OffIndex") THEN 1
 				END AS "UpDown"
 				FROM (
-				SELECT R."odptOperator" AS "odptOperator", R."odptRailway" AS "odptRailway", S."odptStation" AS "odptStationOn",to_int(R."odptIndex") AS "OnIndex", null AS "odptStationOff", null AS "OffIndex" FROM "opd-test.opd-test-db::tables.Railway" R
+				SELECT TOP 1 R."odptOperator" AS "odptOperator", R."odptRailway" AS "odptRailway", S."odptStation" AS "odptStationOn",to_int(R."odptIndex") AS "OnIndex", null AS "odptStationOff", null AS "OffIndex" FROM "opd-test.opd-test-db::tables.Railway" R
 					INNER JOIN "opd-test.opd-test-db::tables.Station" S
 					ON R."odptRailway" = S."odptRailway"
 					AND R."odptStation" = S."odptStation"
@@ -19,7 +19,7 @@ BEGIN
 					WHERE S."InboundWord" = :InStationOn
 					AND R."InboundWord" = :InLine
 				UNION ALL
-				SELECT  R."odptOperator" AS "odptOperator", R."odptRailway" AS "odptRailway", null AS "odptStationOn",null AS "OnIndex", S."odptStation" AS "odptStationOff", to_int(R."odptIndex") AS "OffIndex" FROM "opd-test.opd-test-db::tables.Railway" R
+				SELECT TOP 1 R."odptOperator" AS "odptOperator", R."odptRailway" AS "odptRailway", null AS "odptStationOn",null AS "OnIndex", S."odptStation" AS "odptStationOff", to_int(R."odptIndex") AS "OffIndex" FROM "opd-test.opd-test-db::tables.Railway" R
 					INNER JOIN "opd-test.opd-test-db::tables.Station" S
 					ON R."odptRailway" = S."odptRailway"
 					AND R."odptStation" = S."odptStation"
