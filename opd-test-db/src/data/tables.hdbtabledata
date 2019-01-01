@@ -57,12 +57,11 @@
             },
             "import_settings": {
                 "import_columns": [
-                    "InboundWord",
-                    "odptOperator",
                     "odptRailway",
+                    "InboundWord",
                     "odptStation",
                     "odptIndex",
-                    "TextType"
+                    "odptOperator"
                 ]
             }
         },
@@ -83,8 +82,7 @@
                     "odptRailway",
                     "odptStation",
                     "InboundWord",
-                    "odptOperator",
-                    "TextType"
+                    "odptOperator"
                 ]
             }
         }
