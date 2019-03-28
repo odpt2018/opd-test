@@ -291,7 +291,7 @@ app.post('/Inbound', function (req, res) {
 				res.type("text/plain").status(500).send("ERROR: " + err.toString());
 			} else {
 				//res.status(200).json(STResult);
-				var aclConsumerKey = "d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+				var aclConsumerKey = "8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e";
 				var odptRailway = STResult[0].odptRailway;
 				var odptStation = STResult[0].odptStation;
 				var odptRailDirection = STResult[0].odptRailDirection;
@@ -473,7 +473,7 @@ app.post('/Itsumo', function(req,res) {
 	
 					/*時刻表取得*/
 					var paramApiStation = {
-						aclConsumerKey		: "d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e",
+						aclConsumerKey		: "8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e",
 						odptOperator		: STResult[0].odptOperator,
 						odptRailway 		: STResult[0].odptRailway,
 						odptStationOn 		: STResult[0].odptStationOn,
@@ -850,7 +850,7 @@ app.post('/Inbound', function (req, res) {
 
 				/*時刻表取得*/
 				var paramApiStation = {
-					aclConsumerKey		: "d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e",
+					aclConsumerKey		: "8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e",
 					odptOperator		: STResult[0].odptOperator,
 					odptRailway 		: STResult[0].odptRailway,
 					odptStationOn 		: STResult[0].odptStationOn,
@@ -1144,8 +1144,8 @@ app.get('/insertOperator',function(req,res){
 		}
 
 		var URL = 
-//			"https://api-tokyochallenge.odpt.org/api/v4/odpt:Operator.json?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
-			"https://api-tokyochallenge.odpt.org/api/v4/odpt:Operator?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+//			"https://api-tokyochallenge.odpt.org/api/v4/odpt:Operator.json?acl:consumerKey=8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e";
+			"https://api-tokyochallenge.odpt.org/api/v4/odpt:Operator?acl:consumerKey=8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e";
 		
 		https.get(URL, function (getRes) {
 			var body = "";
@@ -1181,7 +1181,7 @@ app.get('/insertRailway', function (req, res) {
 			}	
 		
 			var URL =
-				"https://api-tokyochallenge.odpt.org/api/v4/odpt:Railway?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+				"https://api-tokyochallenge.odpt.org/api/v4/odpt:Railway?acl:consumerKey=8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e";
 		
 			https.get(URL, function (getRes) {
 				var body = "";
@@ -1253,7 +1253,7 @@ app.get('/insertRailway', function (req, res) {
 
 app.get('/insertStation', function (req, res) {
 	var URL =
-		"https://api-tokyochallenge.odpt.org/api/v4/odpt:Railway?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+		"https://api-tokyochallenge.odpt.org/api/v4/odpt:Railway?acl:consumerKey=8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e";
 
 	https.get(URL, function (getRes) {
 		var body = "";
@@ -1285,7 +1285,7 @@ app.get('/insertStation', function (req, res) {
 
 app.get('/insertRailDirection', function (req, res) {
 	var URL =
-		"https://api-tokyochallenge.odpt.org/api/v4/odpt:RailDirection?acl:consumerKey=d70b73e46ff972f7f4c7aa5f0729cec27739b8a74fcae80925ea074bd60ebb0e";
+		"https://api-tokyochallenge.odpt.org/api/v4/odpt:RailDirection?acl:consumerKey=8caf3415f50155f37dae1de42a80cab7a64f8770362649e07ba31ad0e475863e";
 
 	https.get(URL, function (getRes) {
 		var body = "";
