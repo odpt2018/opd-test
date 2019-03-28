@@ -1092,7 +1092,7 @@ app.post('/Inbound', function (req, res) {
 									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から1時間内には電車が見つからなかったのねん。";
 								}else{
 									//var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。 \nデータ取得日時(" + (new Date()).toString() + ")";
-									var MY_TEXT = InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。 \nデータ取得日時(" + datetostr(new Date(), 'Y年MM月DD日(WW) AP hh:mm:ss (JST)', true) + ")";
+									var MY_TEXT =InSearchTerm.InRailway+"の"+InSearchTerm.InStationOn+"から"+InSearchTerm.InStationOff+"行きの"+InSearchTerm.InIsHoliday+"ダイヤで"+InTimeFormatted.format("HH時mm分") + "から"+(trainNum)+"本の電車は、\n" + timeTableTXT + "があるよん。 \nデータ取得日時(" + datetostr(new Date(), 'Y年MM月DD日(WW) AP hh:mm:ss (JST)', true) + ")";
 								}
 								var httpResponse = {
 									"replies": [
